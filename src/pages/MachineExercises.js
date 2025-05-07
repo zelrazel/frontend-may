@@ -3,12 +3,91 @@ import { useNavigate } from 'react-router-dom';
 import { MACHINE_EXERCISES } from './machineConstants';
 import '../styles/MachineExercises.css';
 
+// Import chest exercise images
+import chestPressImage from '../execises/machine exercises/chest/Chest Press Machine.png';
+import inclineChestPressImage from '../execises/machine exercises/chest/Incline Chest Press Machine.png';
+import pecDeckImage from '../execises/machine exercises/chest/Pec Deck Machine.png';
+
+// Import shoulder exercise images
+import shoulderPressImage from '../execises/machine exercises/shoulders/Shoulder Press Machine.png';
+import lateralRaiseImage from '../execises/machine exercises/shoulders/Lateral Raise Machine.png';
+import rearDeltFlyImage from '../execises/machine exercises/shoulders/Rear Delt Fly Machine.png';
+
+// Import back exercise images
+import latPulldownImage from '../execises/machine exercises/back/Lat Pulldown Machine.png';
+import seatedRowImage from '../execises/machine exercises/back/Seated Row Machine.png';
+import pullOverImage from '../execises/machine exercises/back/Pull-over Machine.png';
+
+// Import leg exercise images
+import squatMachineImage from '../execises/machine exercises/legs/Squat Machine.png';
+import legPressImage from '../execises/machine exercises/legs/Leg Press Machine.png';
+import legExtensionImage from '../execises/machine exercises/legs/Leg Extension Machine.png';
+import legCurlImage from '../execises/machine exercises/legs/Leg Curl Machine.png';
+import calfRaiseImage from '../execises/machine exercises/legs/Calf Raise Machine.png';
+
+// Import arm exercise images
+import bicepCurlImage from '../execises/machine exercises/arms/Bicep Curl Machine.png';
+import tricepExtensionImage from '../execises/machine exercises/arms/Tricep Extension Machine.png';
+import preacherCurlImage from '../execises/machine exercises/arms/Preacher Curl Machine.png';
+
+// Import core exercise images
+import abCrunchImage from '../execises/machine exercises/core/Ab Crunch Machine.png';
+
+// Import cardio exercise images
+import treadmillImage from '../execises/machine exercises/cardio/Treadmill.png';
+import stationaryBikeImage from '../execises/machine exercises/cardio/Stationary Bike.png';
+
+// Import full body exercise images
+import smithMachineImage from '../execises/machine exercises/full body/Smith Machine.png';
+import cableCrossoverImage from '../execises/machine exercises/full body/Cable Crossover Machine.png';
+
 function MachineExercises() {
   const navigate = useNavigate();
   const [selectedTarget, setSelectedTarget] = useState("Chest");
 
   const handleTargetClick = (target) => {
     setSelectedTarget(target);
+  };
+
+  // Map exercise names to their respective images
+  const exerciseImages = {
+    // Chest
+    "Chest Press Machine": chestPressImage,
+    "Incline Chest Press Machine": inclineChestPressImage,
+    "Pec Deck Machine": pecDeckImage,
+    
+    // Shoulders
+    "Shoulder Press Machine": shoulderPressImage,
+    "Lateral Raise Machine": lateralRaiseImage,
+    "Rear Delt Fly Machine": rearDeltFlyImage,
+    
+    // Back
+    "Lat Pulldown Machine": latPulldownImage,
+    "Seated Row Machine": seatedRowImage,
+    "Pull-over Machine": pullOverImage,
+    
+    // Legs
+    "Squat Machine": squatMachineImage,
+    "Leg Press Machine": legPressImage,
+    "Leg Extension Machine": legExtensionImage,
+    "Leg Curl Machine": legCurlImage,
+    "Calf Raise Machine": calfRaiseImage,
+    
+    // Arms
+    "Bicep Curl Machine": bicepCurlImage,
+    "Tricep Extension Machine": tricepExtensionImage,
+    "Preacher Curl Machine": preacherCurlImage,
+    
+    // Core
+    "Ab Crunch Machine": abCrunchImage,
+    
+    // Cardio
+    "Treadmill": treadmillImage,
+    "Stationary Bike": stationaryBikeImage,
+    
+    // Full Body
+    "Smith Machine": smithMachineImage,
+    "Cable Crossover Machine": cableCrossoverImage
   };
 
   const targetDescriptions = {
@@ -62,10 +141,55 @@ function MachineExercises() {
     "Cable Crossover Machine": "Offers virtually unlimited exercise options with adjustable cable pulleys. The constant tension provided by cables creates effective resistance throughout the entire range of motion. This versatility makes it excellent for targeting muscles from different angles and incorporating functional, sports-specific movements into your training."
   };
 
+  const renderContent = () => {
+    const exercisesForTarget = MACHINE_EXERCISES[selectedTarget];
+    
+    return (
+      <>
+        <div className="machine-target-header">
+          <h3>{selectedTarget}</h3>
+          <p>{targetDescriptions[selectedTarget]}</p>
+        </div>
+        
+        {/* Display exercises with available images */}
+        {exercisesForTarget.map((exercise, index) => {
+          if (exerciseImages[exercise]) {
+            return (
+              <div key={exercise} className="exercise-row">
+                <div className="exercise-text-box">
+                  <h3 className="exercise-name">{exercise}</h3>
+                  <p>{exerciseDescriptions[exercise]}</p>
+                </div>
+                <div className="exercise-image-box">
+                  <img 
+                    src={exerciseImages[exercise]} 
+                    alt={exercise}
+                    className="exercise-image"
+                  />
+                </div>
+              </div>
+            );
+          } else {
+            // For exercises without images, display in card form
+            return (
+              <div 
+                key={exercise} 
+                className={`machine-exercise-card ${index % 2 === 0 ? 'left' : 'right'}`}
+              >
+                <h3>{exercise}</h3>
+                <p>{exerciseDescriptions[exercise] || "Build strength and muscle with this specialized machine exercise."}</p>
+              </div>
+            );
+          }
+        })}
+      </>
+    );
+  };
+
   return (
     <div className="machine-exercises-page">
       <div className="machine-header">
-        <h2>Machine Exercises</h2>
+        <h1>MACHINE EXERCISES</h1>
         <p>Guided resistance training for targeted muscle development</p>
       </div>
 
@@ -84,22 +208,7 @@ function MachineExercises() {
       </div>
 
       <div className="machine-content-container">
-        <div className="machine-target-header">
-          <h3>{selectedTarget}</h3>
-          <p>{targetDescriptions[selectedTarget]}</p>
-        </div>
-
-        <div className="machine-exercises-grid">
-          {MACHINE_EXERCISES[selectedTarget].map((exercise, index) => (
-            <div 
-              key={exercise} 
-              className={`machine-exercise-card ${index % 2 === 0 ? 'left' : 'right'}`}
-            >
-              <h3>{exercise}</h3>
-              <p>{exerciseDescriptions[exercise] || "Build strength and muscle with this specialized machine exercise."}</p>
-            </div>
-          ))}
-        </div>
+        {renderContent()}
       </div>
     </div>
   );
