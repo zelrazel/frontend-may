@@ -331,7 +331,7 @@ function Header() {
         <div className="header-content">
           {/* Logo - Centered for mobile */}
           <Link to="/" className="logo-container">
-            <h1 className="header-title">Track Tech Fit</h1>
+            <h1 className="header-title">TrackTechFit</h1>
           </Link>
           
           {/* Mobile Menu Toggle - positioned on the right */}

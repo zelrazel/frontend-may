@@ -655,6 +655,18 @@
         .fc-event {
             margin-top: 0 !important;
         }
+        
+        /* Make workout actions horizontal and smaller on mobile */
+        .workout-actions {
+            flex-direction: row !important;
+            gap: 0.4rem !important;
+        }
+        .workout-actions button {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.7rem !important;
+            min-width: 55px !important;
+            border-radius: 5px !important;
+        }
     }
     
     @media (max-width: 480px) {
@@ -738,6 +750,17 @@
         .fc .fc-col-header-cell-cushion {
             font-size: 0.65rem !important;
             padding: 2px 1px !important;
+        }
+        
+        .workout-actions {
+            flex-direction: row !important;
+            gap: 0.25rem !important;
+        }
+        .workout-actions button {
+            padding: 0.18rem 0.35rem !important;
+            font-size: 0.62rem !important;
+            min-width: 40px !important;
+            border-radius: 4px !important;
         }
     }
     

@@ -290,15 +290,15 @@
 }
 
 .profile-info {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(0, 255, 132, 0.2);
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    /* border-top: 1px solid rgba(0, 255, 132, 0.2); */
 }
 
 .profile-info h2 {
     color: #ffffff;
     font-size: 1.8rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     text-transform: uppercase;
     letter-spacing: 2px;
     text-align: center;
@@ -308,7 +308,7 @@
 .info-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(200px, 1fr));
-    gap: 2.5rem;
+    gap: 1.2rem;
     margin: 0 auto;
     max-width: 1000px;
     padding: 0 2rem;
@@ -1315,9 +1315,9 @@ select.edit-info-input {
 
 /* My Rankings Section - Updated to match Profile Information section exactly */
 .my-rankings-section {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(0, 255, 132, 0.2);
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    /* border-top: 1px solid rgba(0, 255, 132, 0.2); */
     width: 100%;
     max-width: 1000px;  /* Match the profile-info max-width */
     padding-left: 1rem;
@@ -1329,7 +1329,7 @@ select.edit-info-input {
 .rankings-title {
     color: #ffffff;
     font-size: 1.8rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     text-transform: uppercase;
     letter-spacing: 2px;
     text-align: center;
@@ -1343,7 +1343,7 @@ select.edit-info-input {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    gap: 1rem;
+    gap: 0.7rem;
     width: 100%;
     max-width: 1000px;
     margin: 0 auto;
@@ -5634,6 +5634,191 @@ select.edit-info-input {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-weight-tracking-graph-container {
+    position: relative;
+    min-height: 400px;
+    border: none; /* Remove green outline */
+    padding-top: 40px; /* Add space for dropdown above chart */
+}
+
+.weight-time-filter {
+    position: relative !important;
+    width: 200px !important;
+    margin: 0 auto 20px auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    transform: none !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+}
+
+.weight-time-filter-selector {
+    margin: 0 auto;
+}
+
+.weight-time-dropdown {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    min-width: 200px !important;
+}
+
+@media (max-width: 768px) {
+    .profile-weight-tracking-graph-container {
+        padding-top: 30px;
+    }
+    .weight-time-filter {
+        width: 100%;
+        margin-bottom: 12px;
+    }
+    .weight-time-filter-selector {
+        min-width: 100px;
+        font-size: 0.95rem;
+        padding: 7px 12px;
+    }
+    .weight-time-dropdown {
+        width: 95%;
+        min-width: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 42px;
+    }
+}
+
+.weight-time-filter .weight-time-filter-selector {
+    background: rgba(27, 67, 50, 0.9) !important;
+    color: white !important;
+    border: 2px solid #00A951 !important;
+    border-radius: 10px !important;
+    padding: 10px 15px !important;
+    font-weight: 600 !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+}
+
+.weight-time-filter .weight-time-filter-selector:hover {
+    background: rgba(27, 67, 50, 1) !important;
+    box-shadow: 0 0 15px rgba(0, 255, 132, 0.2) !important;
+}
+
+.weight-time-filter .weight-time-dropdown {
+    background: rgba(20, 20, 20, 0.95) !important;
+    border: 2px solid #00A951 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+    min-width: 200px !important;
+    padding: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    overflow: hidden !important;
+    z-index: 100 !important;
+}
+
+.weight-time-filter .weight-time-dropdown .time-option {
+    color: white !important;
+    padding: 10px 15px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    background: transparent !important;
+    font-size: 1rem !important;
+    font-weight: normal !important;
+    border: none !important;
+}
+
+.weight-time-filter .weight-time-dropdown .time-option:hover {
+    background: rgba(0, 169, 81, 0.2) !important;
+}
+
+.weight-time-filter .weight-time-dropdown .time-option.active {
+    color: #00ff84 !important;
+    background: rgba(0, 169, 81, 0.1) !important;
+}
+
+.weight-time-filter .weight-time-dropdown .time-option.indent {
+    padding-left: 25px !important;
+    font-size: 0.9rem !important;
+}
+
+@media (max-width: 768px) {
+  .profile-tab-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0.5rem 0 1.5rem 0;
+    padding: 0 0.5rem;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .profile-tab-label {
+    flex: 1;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1rem; 
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'Orbitron', sans-serif;
+    opacity: 0.8;
+    transition: color 0.2s, opacity 0.2s;
+    padding: 0.2rem 0;
+    cursor: pointer;
+  }
+  .profile-tab-label.active {
+    color: var(--neon-green);
+    opacity: 1;
+    font-weight: 600;
+    text-shadow: 0 0 8px var(--neon-green);
+  }
+}
+
+@media (min-width: 769px) {
+  .profile-tab-labels {
+    display: none !important;
+  }
+}
+
+.profile-weight-tracking-graph-container {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.weight-time-filter {
+  margin-bottom: 0.7rem;
+}
+
+@media (max-width: 768px) {
+  .profile-weight-tracking-graph-container {
+    margin-top: 0.3rem;
+    padding-top: 0.3rem;
+  }
+  .weight-time-filter {
+    margin-bottom: 0.4rem;
+  }
+}
+
+.tab-lock {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 6px;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Remove pseudo-element lock icons for private tabs */
+.profile-container.private-profile .tab-button[data-tab="achievements"]::after,
+.profile-container.private-profile .tab-button[data-tab="activity"]::after,
+.profile-container.private-profile .tab-button[data-tab="workout-tracking"]::after,
+.profile-container.private-profile .tab-button[data-tab="weight-tracking"]::after,
+.profile-container.private-profile .tab-button[data-tab="friends"]::after {
+  content: none !important;
 }
 
 

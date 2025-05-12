@@ -1,7 +1,138 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DUMBBELL_EXERCISES } from './dumbbellConstants';
 import '../styles/DumbbellTraining.css';
+
+// Import chest exercise images
+import benchPressImg from '../execises/dumbbell exercises/chest/Dumbbell Bench Press.jpg';
+import inclinePressImg from '../execises/dumbbell exercises/chest/Incline Dumbbell Press.jpg';
+import declinePressImg from '../execises/dumbbell exercises/chest/Decline Dumbbell Press.jpg';
+import flatFlyImg from '../execises/dumbbell exercises/chest/Flat Dumbbell Fly.jpg';
+import inclineFlyImg from '../execises/dumbbell exercises/chest/Incline Dumbbell Fly.jpg';
+import declineFlyImg from '../execises/dumbbell exercises/chest/Decline Dumbbell Fly.jpg';
+
+// Import shoulder exercise images
+import shoulderPressImg from '../execises/dumbbell exercises/shoulder/Dumbbell Shoulder Press.jpg';
+import arnoldPressImg from '../execises/dumbbell exercises/shoulder/Arnold Press.jpg';
+import lateralRaisesImg from '../execises/dumbbell exercises/shoulder/Lateral Raises.jpg';
+import frontRaisesImg from '../execises/dumbbell exercises/shoulder/Front Raises.png';
+import reverseFlyImg from '../execises/dumbbell exercises/shoulder/Reverse Fly.png';
+import uprightRowsImg from '../execises/dumbbell exercises/shoulder/Upright Rows.png';
+import dumbbellShrugsImg from '../execises/dumbbell exercises/shoulder/Dumbbell Shrugs.png';
+import rearDeltFlyImg from '../execises/dumbbell exercises/shoulder/Rear Delt Fly.jpg';
+import singleArmShoulderPressImg from '../execises/dumbbell exercises/shoulder/Single-Arm Shoulder Press.png';
+
+// Import bicep exercise images
+import bicepCurlImg from '../execises/dumbbell exercises/bicep/Dumbbell Bicep Curl.png';
+import hammerCurlImg from '../execises/dumbbell exercises/bicep/Hammer Curl.png';
+import concentrationCurlImg from '../execises/dumbbell exercises/bicep/Concentration Curl.jpg';
+import inclineCurlImg from '../execises/dumbbell exercises/bicep/Incline Dumbbell Curl.jpg';
+import preacherCurlImg from '../execises/dumbbell exercises/bicep/Preacher Curl.jpg';
+import reverseCurlImg from '../execises/dumbbell exercises/bicep/Reverse Curl.jpg';
+import spiderCurlImg from '../execises/dumbbell exercises/bicep/Spider Curl.png';
+
+// Import tricep exercise images
+import overheadExtensionImg from '../execises/dumbbell exercises/tricep/Dumbbell Overhead Triceps Extension.jpg';
+import kickbacksImg from '../execises/dumbbell exercises/tricep/Dumbbell Kickbacks.jpg';
+import skullCrushersImg from '../execises/dumbbell exercises/tricep/Dumbbell Skull Crushers.jpg';
+import closeGripPressImg from '../execises/dumbbell exercises/tricep/Close-Grip Dumbbell Press.png';
+import singleArmExtensionImg from '../execises/dumbbell exercises/tricep/Dumbbell Triceps Extensions (Single-Arm).png';
+import tricepsDipsImg from '../execises/dumbbell exercises/tricep/Dumbbell Triceps Dips.png';
+
+// Import forearm exercise images
+import wristCurlsImg from '../execises/dumbbell exercises/forearms/Dumbbell Wrist Curls.png';
+import reverseWristCurlsImg from '../execises/dumbbell exercises/forearms/Reverse Wrist Curls.png';
+import dumbbellReverseCurlImg from '../execises/dumbbell exercises/forearms/Dumbbell Reverse Curl.png';
+import wristRotationsImg from '../execises/dumbbell exercises/forearms/Wrist Rotations.png';
+import fingerCurlsImg from '../execises/dumbbell exercises/forearms/Dumbbell Finger Curls.png';
+import pinchHoldImg from '../execises/dumbbell exercises/forearms/Dumbbell Pinch Hold.png';
+import deadHangImg from '../execises/dumbbell exercises/forearms/Dead Hang with Dumbbells.png';
+
+// Import core exercise images
+import russianTwistsImg from '../execises/dumbbell exercises/core/Dumbbell Russian Twists.png';
+import sitUpsImg from '../execises/dumbbell exercises/core/Dumbbell Sit-Ups.png';
+import sideBendsImg from '../execises/dumbbell exercises/core/Dumbbell Side Bends.jpg';
+import hangingLegRaisesImg from '../execises/dumbbell exercises/core/Dumbbell Hanging Leg Raises.png';
+import vUpsImg from '../execises/dumbbell exercises/core/Dumbbell V-Ups.png';
+
+// Import leg exercise images
+import squatsImg from '../execises/dumbbell exercises/legs/Dumbbell Squats.jpg';
+import gobletSquatsImg from '../execises/dumbbell exercises/legs/Dumbbell Goblet Squats.png';
+import bulgarianSplitSquatsImg from '../execises/dumbbell exercises/legs/Dumbbell Bulgarian Split Squats.png';
+import lungesImg from '../execises/dumbbell exercises/legs/Dumbbell Lunges.jpg';
+import stepUpsImg from '../execises/dumbbell exercises/legs/Dumbbell Step-Ups.jpg';
+import romanianDeadliftsImg from '../execises/dumbbell exercises/legs/Dumbbell Romanian Deadlifts.png';
+import sumoDeadliftsImg from '../execises/dumbbell exercises/legs/Dumbbell Sumo Deadlifts.png';
+import calfRaisesImg from '../execises/dumbbell exercises/legs/Dumbbell Calf Raises.png';
+import hamstringCurlsImg from '../execises/dumbbell exercises/legs/Dumbbell Hamstring Curls.png';
+import wallSitImg from '../execises/dumbbell exercises/legs/Dumbbell Wall Sit.png';
+
+// Create an image mapping for easy reference
+const exerciseImages = {
+  // Chest exercises
+  "Dumbbell Bench Press": benchPressImg,
+  "Incline Dumbbell Press": inclinePressImg,
+  "Decline Dumbbell Press": declinePressImg,
+  "Flat Dumbbell Fly": flatFlyImg,
+  "Incline Dumbbell Fly": inclineFlyImg,
+  "Decline Dumbbell Fly": declineFlyImg,
+  
+  // Shoulder exercises
+  "Dumbbell Shoulder Press": shoulderPressImg,
+  "Arnold Press": arnoldPressImg,
+  "Lateral Raises": lateralRaisesImg,
+  "Front Raises": frontRaisesImg,
+  "Reverse Fly": reverseFlyImg,
+  "Upright Rows": uprightRowsImg,
+  "Dumbbell Shrugs": dumbbellShrugsImg,
+  "Rear Delt Fly": rearDeltFlyImg,
+  "Single-Arm Shoulder Press": singleArmShoulderPressImg,
+  
+  // Bicep exercises
+  "Dumbbell Bicep Curl": bicepCurlImg,
+  "Hammer Curl": hammerCurlImg,
+  "Concentration Curl": concentrationCurlImg,
+  "Incline Dumbbell Curl": inclineCurlImg,
+  "Preacher Curl": preacherCurlImg,
+  "Reverse Curl": reverseCurlImg,
+  "Spider Curl": spiderCurlImg,
+  
+  // Tricep exercises
+  "Dumbbell Overhead Triceps Extension": overheadExtensionImg,
+  "Dumbbell Kickbacks": kickbacksImg,
+  "Dumbbell Skull Crushers": skullCrushersImg,
+  "Close-Grip Dumbbell Press": closeGripPressImg,
+  "Dumbbell Triceps Extensions (Single-Arm)": singleArmExtensionImg,
+  "Dumbbell Triceps Dips": tricepsDipsImg,
+  
+  // Forearm exercises
+  "Dumbbell Wrist Curls": wristCurlsImg,
+  "Reverse Wrist Curls": reverseWristCurlsImg,
+  "Dumbbell Reverse Curl": dumbbellReverseCurlImg,
+  "Wrist Rotations": wristRotationsImg,
+  "Dumbbell Finger Curls": fingerCurlsImg,
+  "Dumbbell Pinch Hold": pinchHoldImg,
+  "Dead Hang with Dumbbells": deadHangImg,
+  
+  // Core exercises
+  "Dumbbell Russian Twists": russianTwistsImg,
+  "Dumbbell Sit-Ups": sitUpsImg,
+  "Dumbbell Side Bends": sideBendsImg,
+  "Dumbbell Hanging Leg Raises": hangingLegRaisesImg,
+  "Dumbbell V-Ups": vUpsImg,
+  
+  // Leg exercises
+  "Dumbbell Squats": squatsImg,
+  "Dumbbell Goblet Squats": gobletSquatsImg,
+  "Dumbbell Bulgarian Split Squats": bulgarianSplitSquatsImg,
+  "Dumbbell Lunges": lungesImg,
+  "Dumbbell Step-Ups": stepUpsImg,
+  "Dumbbell Romanian Deadlifts": romanianDeadliftsImg,
+  "Dumbbell Sumo Deadlifts": sumoDeadliftsImg,
+  "Dumbbell Calf Raises": calfRaisesImg,
+  "Dumbbell Hamstring Curls": hamstringCurlsImg,
+  "Dumbbell Wall Sit": wallSitImg
+};
 
 function DumbbellTraining() {
   const navigate = useNavigate();
@@ -87,10 +218,87 @@ function DumbbellTraining() {
     "Dumbbell Wall Sit": "Improves isometric quad strength by holding a wall sit position with a dumbbell on lap. This static hold exercise builds endurance in the quadriceps. Place your back against a wall and lower into a seated position with thighs parallel to the floor, then hold a dumbbell on your lap to increase resistance."
   };
 
+  const renderContent = () => {
+    if (selectedTarget === "Chest" || selectedTarget === "Shoulder") {
+      // For Chest and Shoulder, keep the original image-based layout
+      const exercises = DUMBBELL_EXERCISES[selectedTarget];
+      return (
+        <>
+          <div className="dumbbell-target-header">
+            <h3>{selectedTarget}</h3>
+            <p>{targetDescriptions[selectedTarget]}</p>
+          </div>
+          
+          {exercises.map((exercise) => (
+            <div key={exercise} className="exercise-row">
+              <div className="exercise-text-box">
+                <h3 className="exercise-name">{exercise}</h3>
+                <p>{exerciseDescriptions[exercise]}</p>
+              </div>
+              <div className="exercise-image-box">
+                <img 
+                  src={exerciseImages[exercise]}
+                  alt={exercise}
+                  className="exercise-image"
+                />
+              </div>
+            </div>
+          ))}
+        </>
+      );
+    } else {
+      // For other muscle groups, show images when available and text only for others
+      return (
+        <>
+          <div className="dumbbell-target-header">
+            <h3>{selectedTarget}</h3>
+            <p>{targetDescriptions[selectedTarget]}</p>
+          </div>
+
+          {/* Display exercises with images using the image layout */}
+          {DUMBBELL_EXERCISES[selectedTarget]
+            .filter(exercise => exerciseImages[exercise])
+            .map(exercise => (
+              <div key={exercise} className="exercise-row">
+                <div className="exercise-text-box">
+                  <h3 className="exercise-name">{exercise}</h3>
+                  <p>{exerciseDescriptions[exercise]}</p>
+                </div>
+                <div className="exercise-image-box">
+                  <img 
+                    src={exerciseImages[exercise]}
+                    alt={exercise}
+                    className="exercise-image"
+                  />
+                </div>
+              </div>
+            ))
+          }
+
+          {/* Display exercises without images using the text-only layout */}
+          <div className="dumbbell-exercises-grid">
+            {DUMBBELL_EXERCISES[selectedTarget]
+              .filter(exercise => !exerciseImages[exercise])
+              .map((exercise, index) => (
+                <div 
+                  key={exercise} 
+                  className={`dumbbell-exercise-card ${index % 2 === 0 ? 'left' : 'right'}`}
+                >
+                  <h3>{exercise}</h3>
+                  <p>{exerciseDescriptions[exercise] || "Build strength and muscle with this effective dumbbell exercise."}</p>
+                </div>
+              ))
+            }
+          </div>
+        </>
+      );
+    }
+  };
+
   return (
     <div className="dumbbell-training-page">
       <div className="dumbbell-header">
-        <h2>Dumbbell Training</h2>
+        <h1>DUMBBELL EXERCISES</h1>
         <p>Comprehensive dumbbell workouts for targeted muscle development</p>
       </div>
 
@@ -109,22 +317,7 @@ function DumbbellTraining() {
       </div>
 
       <div className="dumbbell-content-container">
-        <div className="dumbbell-target-header">
-          <h3>{selectedTarget}</h3>
-          <p>{targetDescriptions[selectedTarget]}</p>
-        </div>
-
-        <div className="dumbbell-exercises-grid">
-          {DUMBBELL_EXERCISES[selectedTarget].map((exercise, index) => (
-            <div 
-              key={exercise} 
-              className={`dumbbell-exercise-card ${index % 2 === 0 ? 'left' : 'right'}`}
-            >
-              <h3>{exercise}</h3>
-              <p>{exerciseDescriptions[exercise] || "Build strength and muscle with this effective dumbbell exercise."}</p>
-            </div>
-          ))}
-        </div>
+        {renderContent()}
       </div>
     </div>
   );

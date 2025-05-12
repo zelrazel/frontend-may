@@ -1,8 +1,9 @@
 /* Workout Tracking specific styles */
 .workout-tracking-container {
-    padding: 2rem;
+    padding: 1rem;
     max-width: 800px;
     margin: 0 auto;
+    margin-top: 0.5rem;
 }
 
 .total-weight-display {
@@ -24,8 +25,8 @@
 .workout-form {
     background: rgba(70, 120, 100, 0.3);
     border-radius: 10px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
 }
 
 .workout-input {
@@ -65,7 +66,8 @@
 .workout-history {
     background: rgba(70, 120, 100, 0.3);
     border-radius: 10px;
-    padding: 1.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
 }
 
 .workout-history-title {
@@ -100,9 +102,17 @@
 /* Responsive styles */
 @media screen and (max-width: 768px) {
     .workout-tracking-container {
-        padding: 1rem;
+        padding: 0.5rem;
+        margin-top: 0.3rem;
     }
-
+    .workout-history {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .workout-form {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
     .total-weight-value {
         font-size: 2rem;
     }

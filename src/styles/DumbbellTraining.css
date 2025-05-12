@@ -21,7 +21,7 @@
   margin-bottom: 2rem;
 }
 
-.dumbbell-header h2 {
+.dumbbell-header h1 {
   color: #ffffff;
   font-size: 2.5rem;
   text-transform: uppercase;
@@ -105,7 +105,10 @@
 /* Target Content Section */
 .dumbbell-content-container {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .dumbbell-target-header {
@@ -113,7 +116,7 @@
   border: 1px solid #00A951;
   border-radius: 20px;
   padding: 1.5rem 2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   text-align: center;
 }
 
@@ -131,7 +134,92 @@
   margin: 0;
 }
 
-/* Exercise Grid with Alternating Layout */
+/* Exercise Row Layout */
+.exercise-row {
+  display: flex;
+  width: 100%;
+  background: rgba(27, 67, 50, 0.8);
+  border: 1px solid #00A951;
+  border-radius: 15px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.exercise-row.reverse {
+  flex-direction: row-reverse;
+}
+
+.exercise-text-box {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.exercise-image-box {
+  width: 45%;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid #00A951;
+  border-right: 1px solid #00A951;
+  overflow: hidden;
+  background: #fff;
+  padding: 0.5rem;
+}
+
+.exercise-row.reverse .exercise-image-box {
+  border-right: none;
+  border-left: 1px solid #00A951;
+}
+
+.exercise-row:not(.reverse) .exercise-image-box {
+  border-left: 1px solid #00A951;
+  border-right: none;
+}
+
+.exercise-image-box img {
+  width: 100%;
+  height: auto;
+  max-height: 280px;
+  display: block;
+  object-fit: contain;
+}
+
+.exercise-image {
+  transition: transform 0.3s ease;
+}
+
+.exercise-image:hover {
+  transform: scale(1.05);
+}
+
+/* Specific size adjustments for taller images */
+.exercise-image-box img[alt="Incline Dumbbell Press"] {
+  max-height: 250px;
+  object-position: center;
+}
+
+.exercise-image-box img[alt="Decline Dumbbell Press"] {
+  max-height: 250px;
+}
+
+.exercise-name {
+  color: #00ff84;
+  font-size: 1.8rem;
+  margin: 0 0 1.2rem 0;
+}
+
+.exercise-text-box p {
+  color: white;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Regular Exercise Cards (without images) */
 .dumbbell-exercises-grid {
   width: 100%;
   display: flex;
@@ -167,24 +255,10 @@
   margin-left: auto;
 }
 
-.dumbbell-exercise-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(0, 255, 132, 0.1) 0%, rgba(27, 67, 50, 0) 70%);
-  border-radius: 15px;
-  z-index: 0;
-}
-
 .dumbbell-exercise-card h3 {
   color: #00ff84;
   font-size: 1.5rem;
   margin: 0 0 1rem 0;
-  position: relative;
-  z-index: 1;
 }
 
 .dumbbell-exercise-card p {
@@ -192,13 +266,11 @@
   font-size: 1rem;
   line-height: 1.7;
   margin: 0;
-  position: relative;
-  z-index: 1;
 }
 
 /* Responsive Styles */
 @media screen and (max-width: 768px) {
-  .dumbbell-header h2 {
+  .dumbbell-header h1 {
     font-size: 2rem;
   }
   
@@ -217,6 +289,35 @@
     font-size: 1.8rem;
   }
   
+  .exercise-row, 
+  .exercise-row.reverse {
+    flex-direction: column;
+  }
+  
+  .exercise-text-box {
+    width: 100%;
+    order: 2;
+    padding: 1.5rem;
+  }
+  
+  .exercise-image-box {
+    width: 100%;
+    order: 1;
+    border: none;
+    border-bottom: 1px solid #00A951;
+    max-height: 300px;
+    padding: 1rem;
+  }
+  
+  .exercise-image-box img {
+    max-height: 250px;
+    margin: 0 auto;
+  }
+  
+  .exercise-name {
+    font-size: 1.5rem;
+  }
+  
   .dumbbell-exercise-card {
     width: 95%;
     padding: 1.5rem;
@@ -232,7 +333,7 @@
     padding: 1.5rem;
   }
   
-  .dumbbell-header h2 {
+  .dumbbell-header h1 {
     font-size: 1.7rem;
   }
   
@@ -248,8 +349,8 @@
     min-width: 90px;
   }
   
-  .dumbbell-target-header h3 {
-    font-size: 1.5rem;
+  .exercise-name {
+    font-size: 1.3rem;
   }
   
   .dumbbell-exercise-card {

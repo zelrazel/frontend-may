@@ -3770,10 +3770,42 @@
     .friend-card .about-me-button,
     .friend-card .remove-friend-button {
         display: block !important;
-        width: 100% !important;
-        max-width: 200px !important;
         margin: 3px auto !important;
-        padding: 5px !important;
+        /* Remove width, max-width, padding, font-size so AboutMe.css takes effect */
+    }
+}
+
+@media (max-width: 768px) {
+    .friend-card .about-me-button {
+        margin: 15px auto 10px auto !important;
+        display: block !important;
+        /* Remove width so AboutMe.css takes effect */
+    }
+    .friend-card .remove-friend-button {
+        margin: 10px auto !important;
+        display: block !important;
+        /* Remove width so AboutMe.css takes effect */
+    }
+}
+
+@media (max-width: 480px) {
+    .friend-card .about-me-button,
+    .friend-card .remove-friend-button {
+        margin: 2px auto !important;
+        /* Remove padding, font-size so AboutMe.css takes effect */
+    }
+}
+
+.friend-buttons .about-me-button {
+    margin: 5px auto;
+    /* Remove width, padding, font-size so AboutMe.css takes effect */
+}
+
+@media (max-width: 480px) {
+    .friend-buttons .about-me-button,
+    .friend-buttons .remove-friend-button {
+        margin: 5px 0 !important;
+        /* Remove width so AboutMe.css takes effect */
     }
 }
 
@@ -4071,3 +4103,838 @@
     margin-top: -2px !important;
 }
 
+/* Force Cancel Request modal buttons to match Accept/Cancel outlined style */
+.swal2-popup.cancel-request-dialog .swal2-confirm {
+    background: transparent !important;
+    border: 2px solid #ff4444 !important;
+    color: #ff4444 !important;
+    box-shadow: 0 0 10px #ff4444 !important;
+    text-shadow: 0 0 5px #ff4444 !important;
+    font-family: 'Orbitron', sans-serif !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    transition: all 0.3s ease !important;
+}
+.swal2-popup.cancel-request-dialog .swal2-confirm:hover {
+    background: #ff4444 !important;
+    color: #000 !important;
+    box-shadow: 0 0 20px #ff4444 !important;
+}
+.swal2-popup.cancel-request-dialog .swal2-cancel {
+    background: transparent !important;
+    border: 2px solid #00ff84 !important;
+    color: #00ff84 !important;
+    box-shadow: 0 0 10px #00ff84 !important;
+    text-shadow: 0 0 5px #00ff84 !important;
+    font-family: 'Orbitron', sans-serif !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    transition: all 0.3s ease !important;
+}
+.swal2-popup.cancel-request-dialog .swal2-cancel:hover {
+    background: #00ff84 !important;
+    color: #000 !important;
+    box-shadow: 0 0 20px #00ff84 !important;
+}
+
+.friend-card .about-me-button,
+.friend-buttons .about-me-button {
+    width: 120px !important;
+}
+
+@media (max-width: 768px) {
+    .friend-card .about-me-button,
+    .friend-buttons .about-me-button {
+        width: 80% !important;
+    }
+}
+
+.friend-card .info-row.request-style-info .info-value {
+    font-size: 1rem !important;
+    margin-bottom: 0 !important;
+    font-weight: bold !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 180px !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+.friend-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: center !important;
+    padding-bottom: 0.8rem !important;
+}
+
+/* Better height management for overall consistency */
+.friends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .friend-card .info-row.request-style-info .info-value {
+        font-size: 0.9rem !important;
+        max-width: 150px !important;
+    }
+    
+    .friends-grid {
+        gap: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .friend-card .info-row.request-style-info .info-value {
+        font-size: 0.85rem !important;
+        max-width: 130px !important;
+    }
+}
+
+/* Complete overhaul of friend card layout to position content higher */
+.friend-card {
+    padding: 0.75rem 1rem !important;
+    min-height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: center !important;
+}
+
+.friend-card .friend-profile {
+    margin-bottom: 0 !important;
+}
+
+.friend-card .friend-profile .profile-picture,
+.friend-card .friend-profile .no-profile-picture {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #00A951 !important;
+    overflow: hidden;
+}
+
+.friend-card .friend-profile .no-profile-picture svg {
+    width: 40px !important;
+    height: 40px !important;
+}
+
+@media (max-width: 768px) {
+  .friend-card .friend-profile .profile-picture,
+  .friend-card .friend-profile .no-profile-picture {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  .friend-card .friend-profile .no-profile-picture svg {
+    width: 30px !important;
+    height: 30px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .friend-card .friend-profile .profile-picture,
+  .friend-card .friend-profile .no-profile-picture {
+    width: 45px !important;
+    height: 45px !important;
+  }
+  .friend-card .friend-profile .no-profile-picture svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+}
+
+.friend-card .no-profile-picture svg {
+    width: 32px !important;
+    height: 32px !important;
+}
+
+.friend-card .friend-details {
+    margin-top: 0 !important;
+    padding: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.friend-card .info-row.request-style-info {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.friend-card .info-row.request-style-info .info-value {
+    font-size: 1rem !important;
+    font-weight: bold !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 180px !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+.friend-card .friend-buttons {
+    margin-top: 0.4rem !important;
+    gap: 3px !important;
+}
+
+.friend-card .about-me-button,
+.friend-card .remove-friend-button {
+    margin: 2px auto !important;
+    padding: 6px 10px !important;
+}
+
+/* Better height management for overall consistency */
+.friends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .friend-card {
+        padding: 0.6rem 0.8rem !important;
+    }
+    
+    .friend-card .friend-profile .profile-picture,
+    .friend-card .friend-profile .no-profile-picture {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    
+    .friend-card .no-profile-picture svg {
+        width: 25px !important;
+        height: 25px !important;
+    }
+    
+    .friend-card .info-row.request-style-info .info-value {
+        font-size: 0.9rem !important;
+        max-width: 150px !important;
+    }
+    
+    .friend-card .friend-buttons {
+        margin-top: 0.3rem !important;
+        gap: 3px !important;
+    }
+    
+    .friends-grid {
+        gap: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .friend-card .friend-profile .profile-picture,
+    .friend-card .friend-profile .no-profile-picture {
+        width: 45px !important;
+        height: 45px !important;
+    }
+    
+    .friend-card .no-profile-picture svg {
+        width: 22px !important;
+        height: 22px !important;
+    }
+    
+    .friend-card .info-row.request-style-info .info-value {
+        font-size: 0.85rem !important;
+        max-width: 130px !important;
+    }
+    
+    .friend-card .friend-buttons {
+        margin-top: 0.2rem !important;
+        gap: 2px !important;
+    }
+    
+    .friend-card .about-me-button,
+    .friend-card .remove-friend-button {
+        margin: 1px auto !important;
+        padding: 5px 8px !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+.friend-card .about-me-button {
+    background: #00A951 !important;
+    border: 2px solid #00A951 !important;
+    color: #000000 !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 0 10px rgba(0, 169, 81, 0.3) !important;
+}
+
+.friend-card .about-me-button:hover {
+    background: #00cc69 !important;
+    color: #000000 !important;
+    box-shadow: 0 0 20px rgba(0, 169, 81, 0.5) !important;
+    transform: translateY(-2px);
+}
+
+.friend-card .remove-friend-button {
+    background: #FF1700 !important;
+    border: 2px solid #FF1700 !important;
+    color: #FFFFFF !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 0 10px rgba(255, 23, 0, 0.3) !important;
+}
+
+.friend-card .remove-friend-button:hover {
+    background: #cc0000 !important;
+    border-color: #cc0000 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 0 20px rgba(204, 0, 0, 0.5) !important;
+    transform: translateY(-2px);
+}
+
+/* Update the About Me button to match AboutMe.css styling */
+.friend-card .about-me-button {
+    padding: 0.4rem 0.5rem !important;
+    background: linear-gradient(90deg, #7fff7f, #00ff84) !important;
+    color: #065f2c !important;
+    border: none !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    width: 120px !important;
+    margin-bottom: 0.5rem !important;
+    font-size: 0.92rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.friend-card .about-me-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.13) !important;
+    background: linear-gradient(90deg, #00ff84, #7fff7f) !important;
+}
+
+.friend-card .about-me-button:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Keep the existing Remove Friend button styling */
+.friend-card .remove-friend-button {
+    background: #FF1700 !important;
+    border: 2px solid #FF1700 !important;
+    color: #FFFFFF !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 0 10px rgba(255, 23, 0, 0.3) !important;
+    margin: 2px auto !important;
+    padding: 6px 10px !important;
+    width: 120px !important;
+}
+
+.friend-card .remove-friend-button:hover {
+    background: #cc0000 !important;
+    border-color: #cc0000 !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 0 20px rgba(204, 0, 0, 0.5) !important;
+    transform: translateY(-2px);
+}
+
+/* Mobile responsiveness for buttons */
+@media (max-width: 768px) {
+    .friend-card .about-me-button {
+        width: 80% !important;
+        font-size: 0.85rem !important;
+        padding: 0.35rem 0.5rem !important;
+    }
+    
+    .friend-card .remove-friend-button {
+        width: 80% !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .friend-card .about-me-button {
+        width: 80% !important;
+        font-size: 0.8rem !important;
+        padding: 0.3rem 0.4rem !important;
+    }
+    
+    .friend-card .remove-friend-button {
+        width: 80% !important;
+        font-size: 0.8rem !important;
+        padding: 0.3rem 0.5rem !important;
+    }
+}
+
+.search-result .user-card .remove-friend-button {
+    padding: 8px 15px !important;
+    width: auto !important;
+    min-width: 130px !important;
+    height: 35px !important;
+    font-size: 0.9rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    text-transform: none !important;
+    line-height: 1 !important;
+}
+
+.search-result .user-card .remove-friend-button span {
+    display: inline !important;
+    white-space: nowrap !important;
+}
+
+.search-result .user-card .status-badge.friends {
+    padding: 5px 12px !important;
+    font-size: 0.85rem !important;
+    width: auto !important;
+    min-width: 120px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 5px auto !important;
+    line-height: 1 !important;
+}
+
+/* Override any vertical text transforms */
+.search-result .user-card .remove-friend-button,
+.search-result .user-card .status-badge.friends {
+    text-orientation: mixed !important;
+    writing-mode: horizontal-tb !important;
+    text-transform: none !important;
+}
+
+@media (max-width: 768px) {
+    .search-result .user-card .remove-friend-button {
+        padding: 6px 12px !important;
+        min-width: 120px !important;
+        height: 32px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .search-result .user-card .status-badge.friends {
+        padding: 4px 10px !important;
+        font-size: 0.8rem !important;
+        min-width: 110px !important;
+    }
+}
+
+/* Mobile styles for About Me buttons across all sections */
+@media (max-width: 768px) {
+    .search-result .user-card .about-me-button,
+    .requests-section .request-card .about-me-button,
+    .sent-requests-section .request-card .about-me-button,
+    .friends-list-section .friend-card .about-me-button {
+        width: 90px !important;
+        min-width: 90px !important;
+        max-width: 90px !important;
+        height: 28px !important;
+        padding: 2px 6px !important;
+        font-size: 0.8rem !important;
+        margin: 3px auto !important;
+        border-radius: 4px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        line-height: 1 !important;
+        letter-spacing: 0.2px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-result .user-card .about-me-button,
+    .requests-section .request-card .about-me-button,
+    .sent-requests-section .request-card .about-me-button,
+    .friends-list-section .friend-card .about-me-button {
+        width: 85px !important;
+        min-width: 85px !important;
+        max-width: 85px !important;
+        height: 26px !important;
+        padding: 2px 4px !important;
+        font-size: 0.75rem !important;
+        margin: 2px auto !important;
+        border-radius: 3px !important;
+        letter-spacing: 0.1px !important;
+    }
+}
+
+/* Ensure consistent button sizing in all sections */
+
+/* Base styles for About Me buttons across all sections */
+.search-result .user-card .about-me-button,
+.requests-section .request-card .about-me-button,
+.sent-requests-section .request-card .about-me-button,
+.friends-list-section .friend-card .about-me-button {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    height: 35px !important;
+    padding: 6px 10px !important;
+    font-size: 0.9rem !important;
+    margin: 5px auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    line-height: 1 !important;
+    background: linear-gradient(90deg, #7fff7f, #00ff84) !important;
+    color: #065f2c !important;
+    border: none !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Mobile styles for ALL About Me buttons */
+@media (max-width: 768px) {
+    .about-me-button,
+    .friend-card .about-me-button,
+    .friend-buttons .about-me-button,
+    .search-result .about-me-button,
+    .search-result .user-card .about-me-button,
+    .requests-section .request-card .about-me-button,
+    .sent-requests-section .request-card .about-me-button,
+    .friends-list-section .friend-card .about-me-button {
+        width: 90px !important;
+        min-width: 90px !important;
+        max-width: 90px !important;
+        height: 28px !important;
+        padding: 2px 6px !important;
+        font-size: 0.8rem !important;
+        margin: 3px auto !important;
+        border-radius: 4px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        line-height: 1 !important;
+        letter-spacing: 0.2px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-me-button,
+    .friend-card .about-me-button,
+    .friend-buttons .about-me-button,
+    .search-result .about-me-button,
+    .search-result .user-card .about-me-button,
+    .requests-section .request-card .about-me-button,
+    .sent-requests-section .request-card .about-me-button,
+    .friends-list-section .friend-card .about-me-button {
+        width: 85px !important;
+        min-width: 85px !important;
+        max-width: 85px !important;
+        height: 26px !important;
+        padding: 2px 4px !important;
+        font-size: 0.75rem !important;
+        margin: 2px auto !important;
+        border-radius: 3px !important;
+        letter-spacing: 0.1px !important;
+    }
+}
+
+/* Override any conflicting styles */
+@media (max-width: 768px) {
+    .friend-card .about-me-button,
+    .friend-buttons .about-me-button {
+        width: 90px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .friend-card .about-me-button,
+    .friend-buttons .about-me-button {
+        width: 85px !important;
+    }
+}
+
+.search-result .user-card .status-badge.pending {
+    padding: 4px 10px !important;
+    font-size: 0.85rem !important;
+    width: auto !important;
+    min-width: 110px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 5px auto !important;
+    line-height: 1 !important;
+}
+
+.search-result .user-card .cancel-request-button {
+    padding: 6px 12px !important;
+    min-width: 120px !important;
+    height: 32px !important;
+    font-size: 0.85rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    margin: 5px auto !important;
+}
+
+@media (max-width: 768px) {
+    .search-result .user-card .status-badge.pending {
+        padding: 3px 8px !important;
+        font-size: 0.8rem !important;
+        min-width: 100px !important;
+    }
+    
+    .search-result .user-card .cancel-request-button {
+        padding: 5px 10px !important;
+        min-width: 110px !important;
+        height: 28px !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-result .user-card .status-badge.pending {
+        padding: 2px 6px !important;
+        font-size: 0.75rem !important;
+        min-width: 90px !important;
+    }
+    
+    .search-result .user-card .cancel-request-button {
+        padding: 4px 8px !important;
+        min-width: 100px !important;
+        height: 26px !important;
+        font-size: 0.75rem !important;
+    }
+}
+
+/* Desktop-specific About Me button styles */
+@media (min-width: 769px) {
+    .search-result .user-card .about-me-button,
+    .requests-section .request-card .about-me-button,
+    .sent-requests-section .request-card .about-me-button,
+    .friends-list-section .friend-card .about-me-button {
+        width: 90px !important;
+        min-width: 90px !important;
+        max-width: 90px !important;
+        height: 28px !important;
+        padding: 2px 6px !important;
+        font-size: 0.8rem !important;
+        margin: 3px auto !important;
+        border-radius: 4px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        line-height: 1 !important;
+        letter-spacing: 0.2px !important;
+    }
+
+    .search-result .user-card .about-me-button:hover,
+    .requests-section .request-card .about-me-button:hover,
+    .sent-requests-section .request-card .about-me-button:hover,
+    .friends-list-section .friend-card .about-me-button:hover {
+        transform: translateY(-1px) !important;
+    }
+}
+
+/* Override any conflicting styles */
+@media (min-width: 769px) {
+    .friend-card .about-me-button,
+    .friend-buttons .about-me-button {
+        width: 90px !important;
+        min-width: 90px !important;
+        max-width: 90px !important;
+        height: 28px !important;
+        padding: 2px 6px !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+.mutual-friends-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #00A951;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    margin: 5px auto;
+    width: fit-content;
+    text-align: center;
+}
+
+.mutual-friends-link:hover {
+    color: #00cc69;
+    transform: translateY(-1px);
+}
+
+.mutual-friends-icon {
+    font-size: 16px;
+}
+
+.mutual-friends-link span {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Center mutual friends link in request cards */
+.request-card .mutual-friends-link,
+.search-result .mutual-friends-link {
+    margin: 5px auto;
+    width: fit-content;
+}
+
+/* Adjust spacing in friend cards */
+.friend-card .mutual-friends-link {
+    margin: 2px auto;
+    width: fit-content;
+}
+
+@media (max-width: 768px) {
+    .mutual-friends-link {
+        padding: 3px 6px;
+        width: fit-content;
+        margin: 3px auto;
+    }
+    
+    .mutual-friends-icon {
+        font-size: 14px;
+    }
+    
+    .mutual-friends-link span {
+        font-size: 12px;
+    }
+    
+    .request-card .mutual-friends-link,
+    .search-result .mutual-friends-link,
+    .friend-card .mutual-friends-link {
+        margin: 3px auto;
+        width: fit-content;
+    }
+}
+
+.friend-card .friend-profile .no-profile-picture {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #00A951 !important;
+    overflow: hidden;
+    background: #081C15;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.friend-card .friend-profile .no-profile-picture svg {
+    width: 40px !important;
+    height: 40px !important;
+    display: block;
+    margin: 0 auto;
+}
+
+.friend-card .friend-profile .profile-picture {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #00A951 !important;
+    overflow: hidden;
+    background: #081C15;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .friend-card .friend-profile .profile-picture,
+  .friend-card .friend-profile .no-profile-picture {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  .friend-card .friend-profile .no-profile-picture svg {
+    width: 30px !important;
+    height: 30px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .friend-card .friend-profile .profile-picture,
+  .friend-card .friend-profile .no-profile-picture {
+    width: 45px !important;
+    height: 45px !important;
+  }
+  .friend-card .friend-profile .no-profile-picture svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+}
+
+/* --- FORCE PROFILE PICTURE SIZES IN FRIEND CARD (OVERRIDE) --- */
+.friend-card .friend-profile .profile-picture {
+  width: 80px !important;
+  height: 80px !important;
+}
+
+.friend-card .friend-profile .no-profile-picture {
+  width: 75px !important;
+  height: 75px !important;
+}
+
+@media (max-width: 768px) {
+  .friend-card .friend-profile .profile-picture {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  .friend-card .friend-profile .no-profile-picture {
+    width: 80px !important;
+    height: 80px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .friend-card .friend-profile .profile-picture {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  .friend-card .friend-profile .no-profile-picture {
+    width: 60px !important;
+    height: 60px !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .friends-list-section > h2 {
+    color: #fff !important;
+    font-weight: 600;
+    text-shadow: 0 0 6px rgba(0,0,0,0.18);
+    letter-spacing: 1px;
+    background: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .friends-list-section > h2 {
+    color: #fff !important;
+    font-weight: 600;
+    text-shadow: 0 0 6px rgba(0,0,0,0.18);
+    letter-spacing: 1px;
+    background: none;
+  }
+}

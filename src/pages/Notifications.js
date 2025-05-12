@@ -19,6 +19,7 @@ import {
 } from 'react-icons/fa';
 import '../styles/Notifications.css';
 import '../styles/NotificationsPage.css';
+import Swal from 'sweetalert2';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -115,6 +116,26 @@ const Notifications = () => {
     };
 
     const handleClearAll = async () => {
+        if (notifications.length === 0) return;
+        // SweetAlert2 confirmation styled like profile
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            html: `<div style=\"font-size:1.1rem;\">Are you sure you want to clear all notifications?<br>This action cannot be undone.</div>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Clear All',
+            cancelButtonText: 'Cancel',
+            focusCancel: true,
+            customClass: {
+                popup: 'swal2-popup',
+                confirmButton: 'swal2-confirm',
+                cancelButton: 'swal2-cancel',
+                title: 'swal2-title',
+            },
+            background: 'rgba(16, 16, 28, 0.95)',
+            buttonsStyling: false
+        });
+        if (!result.isConfirmed) return;
         try {
             const token = localStorage.getItem('token');
             await axios.delete(`${API_URL}api/notifications`, {
@@ -122,7 +143,6 @@ const Notifications = () => {
             });
 
             setNotifications([]);
-            
             // Dispatch event to update notification count in header
             window.dispatchEvent(new CustomEvent('notifications-updated'));
         } catch (error) {
@@ -328,12 +348,12 @@ const Notifications = () => {
                 <div className="notifications-header">
                     <h1>Notifications</h1>
                     <div className="notifications-actions">
-                        {renderFilterOptions()}
                         {notifications.length > 0 && (
                             <button className="clear-all-btn" onClick={handleClearAll}>
                                 Clear All
                             </button>
                         )}
+                        {renderFilterOptions()}
                     </div>
                 </div>
 

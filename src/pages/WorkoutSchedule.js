@@ -27,18 +27,6 @@ const Toast = ({ message, type, onClose }) => {
     );
 };
 
-const ConfirmModal = ({ message, onConfirm, onCancel }) => (
-    <div className="modal-overlay" onClick={onCancel}>
-        <div className="confirm-modal" onClick={e => e.stopPropagation()}>
-            <p>{message}</p>
-            <div className="confirm-actions">
-                <button className="button-cancel mobile-left" onClick={onCancel}>Cancel</button>
-                <button className="button-delete confirm mobile-right" onClick={onConfirm}>Delete</button>
-            </div>
-        </div>
-    </div>
-);
-
 // Event popup component
 const EventPopup = ({ workout, onClose, onEdit, onDelete }) => (
     <div className="event-popup">
@@ -105,18 +93,14 @@ const WorkoutSchedule = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [availableTargets, setAvailableTargets] = useState([]);
     const [availableExercises, setAvailableExercises] = useState([]);
-    const [showConfirmModal, setShowConfirmModal] = useState({
-        show: false,
-        workoutId: null,
-        message: ""
-    });
+    const [showClearAllModal, setShowClearAllModal] = useState(false);
+
     // Add state for event popup
     const [popupInfo, setPopupInfo] = useState({
         show: false,
         workout: null,
         position: { top: 0, left: 0 }
     });
-    const [showClearAllModal, setShowClearAllModal] = useState(false);
 
     const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -439,15 +423,29 @@ const WorkoutSchedule = () => {
         });
     };
 
-    const handleDeleteWorkout = (id) => {
+    const handleDeleteWorkout = async (id) => {
         // Close popup if it's open
         setPopupInfo({ show: false, workout: null, position: { top: 0, left: 0 } });
-        
-        setShowConfirmModal({
-            show: true,
-            workoutId: id,
-            message: "Are you sure you want to delete this workout?"
+        const result = await Swal.fire({
+            title: 'ARE YOU SURE?',
+            html: `<div style="font-size:1.1rem;">Are you sure you want to delete this workout?</div>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'DELETE',
+            cancelButtonText: 'CANCEL',
+            focusCancel: true,
+            customClass: {
+                popup: 'swal2-neon-green',
+                confirmButton: 'swal2-confirm-neon',
+                cancelButton: 'swal2-cancel-neon',
+                title: 'swal2-title-neon',
+            },
+            background: '#181c1f',
+            buttonsStyling: false
         });
+        if (result.isConfirmed) {
+            await confirmDelete(id);
+        }
     };
 
     const confirmDelete = async (id) => {
@@ -469,7 +467,6 @@ const WorkoutSchedule = () => {
                 // Don't show error toast for this as the main operation succeeded
             }
             
-            setShowConfirmModal({ show: false, workoutId: null, message: "" });
             showToast("Workout deleted successfully", "success");
             fetchWorkouts(); 
         } catch (error) {
@@ -479,12 +476,32 @@ const WorkoutSchedule = () => {
     };
 
     // Add function to handle clear all workouts
-    const handleClearAllWorkouts = () => {
+    const handleClearAllWorkouts = async () => {
         if (workouts.length === 0) {
             showToast("No scheduled workouts to clear", "error");
             return;
         }
-        setShowClearAllModal(true);
+        // SweetAlert2 confirmation styled like profile
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            html: `<div style="font-size:1.1rem;">Are you sure you want to clear all scheduled workouts?<br>This action cannot be undone.</div>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Clear All',
+            cancelButtonText: 'Cancel',
+            focusCancel: true,
+            customClass: {
+                popup: 'swal2-popup',
+                confirmButton: 'swal2-confirm',
+                cancelButton: 'swal2-cancel',
+                title: 'swal2-title',
+            },
+            background: 'rgba(16, 16, 28, 0.95)',
+            buttonsStyling: false
+        });
+        if (result.isConfirmed) {
+            await confirmClearAllWorkouts();
+        }
     };
 
     // Function to clear all workouts
@@ -685,29 +702,6 @@ const WorkoutSchedule = () => {
                 ))}
             </div>
             
-            {/* Confirmation modal */}
-            {showConfirmModal.show && (
-                <div className="modal-overlay" onClick={() => setShowConfirmModal({ show: false, workoutId: null, message: "" })}>
-                    <div className="confirm-modal" onClick={e => e.stopPropagation()}>
-                        <p>{showConfirmModal.message}</p>
-                        <div className="confirm-actions">
-                            <button 
-                                className="button-cancel" 
-                                onClick={() => setShowConfirmModal({ show: false, workoutId: null, message: "" })}
-                            >
-                                Cancel
-                            </button>
-                            <button 
-                                className="button-delete confirm" 
-                                onClick={() => confirmDelete(showConfirmModal.workoutId)}
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            
             {/* Event popup */}
             {popupInfo.show && popupInfo.workout && (
                 <div 
@@ -729,7 +723,7 @@ const WorkoutSchedule = () => {
             )}
             
             {/* Clear All Confirmation modal */}
-            {showClearAllModal && (
+            {false && showClearAllModal && (
                 <div className="modal-overlay" onClick={() => setShowClearAllModal(false)}>
                     <div className="confirm-modal" onClick={e => e.stopPropagation()}>
                         <p>Are you sure you want to clear all scheduled workouts? This action cannot be undone.</p>

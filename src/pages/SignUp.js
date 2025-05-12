@@ -176,19 +176,54 @@ function SignUp() {
         });
 
         if (response.ok) {
+            const data = await response.json();
+            
+            // Customize message based on response
+            let title = 'REGISTRATION SUCCESSFUL!';
+            let mainMessage = data.autoVerified 
+                ? 'Your account has been verified. You can now sign in.'
+                : 'Please check your email to verify your account before signing in.';
+                
+            if (!data.emailSent && !data.autoVerified) {
+                mainMessage = 'Account created but verification email could not be sent. Please contact support.';
+            }
+
+            // Create HTML content with larger, more prominent text
+            const htmlContent = `
+                <div style="font-family: 'Arial', sans-serif; color: #00ff84; text-align: center;">
+                    <div style="font-size: 20px; margin-bottom: 20px;">
+                        ${mainMessage}
+                    </div>
+                    ${data.emailSent ? `
+                    <div style="margin: 25px auto; padding: 15px; background-color: rgba(0, 255, 132, 0.1); 
+                        border: 2px solid #00ff84; border-radius: 10px; max-width: 90%;">
+                        <span style="font-size: 18px; color: #00ff84; font-weight: bold;">
+                            ⚠️ IMPORTANT: 
+                        </span>
+                        <div style="font-size: 16px; margin-top: 10px; color: #ffffff;">
+                            If you don't see the verification email in your inbox,<br>
+                            <span style="font-weight: bold; font-size: 18px;">CHECK YOUR SPAM/JUNK FOLDER</span>
+                        </div>
+                    </div>` : ''}
+                </div>
+            `;
+            
             // Show success animation
             await Swal.fire({
-                title: 'Registration Successful!',
-                text: 'Welcome to GymFlow!',
+                title: title,
+                html: htmlContent,
                 icon: 'success',
-                showConfirmButton: false,
-                timer: 2000,
+                showConfirmButton: true,
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#00A951',
                 background: 'rgba(16, 16, 28, 0.95)',
+                width: 600,
                 customClass: {
                     popup: 'swal-custom-popup',
                     title: 'swal-custom-title',
                     content: 'swal-custom-content',
-                    icon: 'swal-custom-icon'
+                    icon: 'swal-custom-icon',
+                    confirmButton: 'swal-custom-confirm-button'
                 },
                 didOpen: () => {
                     // Add custom animation for the success icon
@@ -236,7 +271,7 @@ function SignUp() {
     <div className="signup-container">
       <div className="signup-card">
         <div className="signup-header">
-          <h1 className="signup-title">GYMFLOW</h1>
+          <h1 className="signup-title">TrackTechFit</h1>
           <p className="signup-subtitle">Join the Community</p>
         </div>
         

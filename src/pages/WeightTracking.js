@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
 import {
@@ -14,7 +14,7 @@ import {
 import '../styles/WeightTracking.css';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2'; 
-import { FaInfoCircle, FaTimes, FaTrash } from 'react-icons/fa';
+import { FaInfoCircle, FaTimes, FaTrash, FaChevronDown } from 'react-icons/fa';
 
 ChartJS.register(
     CategoryScale,
@@ -42,25 +42,6 @@ const Toast = ({ message, type, onClose }) => {
     );
 };
 
-// Add this after the Toast component
-const ConfirmModal = ({ message, onConfirm, onCancel }) => (
-    <div className="modal-overlay" onClick={onCancel}>
-        <div className="confirm-modal swal2-style" onClick={e => e.stopPropagation()}>
-            <div className="confirm-modal-content">
-                <h2 className="confirm-title">ARE YOU SURE?</h2>
-                <p className="confirm-message">{message}</p>
-                <p className="confirm-warning">
-                    Deleting weight history will also delete your weight progress and may affect your achievements.
-                </p>
-                <div className="confirm-actions">
-                    <button className="cancel-button" onClick={onCancel}>CANCEL</button>
-                    <button className="confirm-button" onClick={onConfirm}>DELETE</button>
-                </div>
-            </div>
-        </div>
-    </div>
-);
-
 const WeightTracking = () => {
     const navigate = useNavigate();
     const [token] = useState(localStorage.getItem('token'));
@@ -68,11 +49,18 @@ const WeightTracking = () => {
     const [currentWeight, setCurrentWeight] = useState(0);
     const [weightHistory, setWeightHistory] = useState([]);
     const [toasts, setToasts] = useState([]);
-    const [showConfirmModal, setShowConfirmModal] = useState({ show: false, id: null });
     const [error, setError] = useState(null); // Add this line with other useState declarations
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
     const [hasLoggedToday, setHasLoggedToday] = useState(false);
     const [showInfoPopup, setShowInfoPopup] = useState(false);
+    const [chartTimePeriod, setChartTimePeriod] = useState('all'); // 'all', 'monthly', 'weekly'
+    const [showTimeFilter, setShowTimeFilter] = useState(false);
+    const [availableMonths, setAvailableMonths] = useState([]);
+    const [availableWeeks, setAvailableWeeks] = useState([]);
+    const [selectedMonth, setSelectedMonth] = useState(null);
+    const [selectedWeek, setSelectedWeek] = useState(null);
+    const timeFilterRef = useRef(null);
+    const [activeTab, setActiveTab] = useState('update');
 
     // Add this useEffect at the top for authentication check
     useEffect(() => {
@@ -499,13 +487,33 @@ const WeightTracking = () => {
     };
 
     const handleDelete = async (weightId) => {
-        setShowConfirmModal({ show: true, id: weightId });
+        // Show SweetAlert2 confirmation modal
+        const result = await Swal.fire({
+            title: 'ARE YOU SURE?',
+            html: `<div style="font-size:1.1rem;">You are about to delete this weight record.<br><br><span style='display:inline-block;background:rgba(0,255,132,0.10);color:#00ff84;padding:10px 14px;border-radius:7px;border-left:4px solid #00ff84;font-weight:bold;font-size:1.05rem;box-shadow:0 0 8px rgba(0,255,132,0.15);margin:8px 0;'>DELETING WEIGHT RECORD WILL ALSO DELETE YOUR WEIGHT PROGRESS.</span></div>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'DELETE',
+            cancelButtonText: 'CANCEL',
+            customClass: {
+                popup: 'swal2-popup',
+                title: 'swal2-title',
+                confirmButton: 'swal2-confirm',
+                cancelButton: 'swal2-cancel',
+                actions: 'swal2-actions',
+            },
+            background: 'rgba(16, 16, 28, 0.95)',
+            focusCancel: true
+        });
+        if (result.isConfirmed) {
+            await confirmDelete(weightId);
+        }
     };
 
-    const confirmDelete = async () => {
+    const confirmDelete = async (weightId) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`${API_URL}api/weight/${showConfirmModal.id}`, {
+            await axios.delete(`${API_URL}api/weight/${weightId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             showToast('Weight record deleted successfully', 'success');
@@ -513,7 +521,6 @@ const WeightTracking = () => {
         } catch (error) {
             showToast('Failed to delete weight record', 'error');
         }
-        setShowConfirmModal({ show: false, id: null });
     };
 
     // Create activity for weight change
@@ -566,18 +573,289 @@ const WeightTracking = () => {
         }
     };
 
-    const chartData = {
-        labels: weightHistory.map(entry => 
-            new Date(entry.date).toLocaleDateString()
-        ).reverse(),
-        datasets: [{
-            label: 'Weight Progress',
-            data: weightHistory.map(entry => entry.weight).reverse(),
-            borderColor: '#00ff84',
-            backgroundColor: 'rgba(0, 255, 132, 0.2)',
-            tension: 0.4
-        }]
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (timeFilterRef.current && !timeFilterRef.current.contains(event.target)) {
+                setShowTimeFilter(false);
+            }
+        }
+        
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+    
+    // Extract available months and weeks from weight history
+    useEffect(() => {
+        if (weightHistory.length > 0) {
+            // Group entries by month for the dropdown
+            const monthsMap = new Map();
+            
+            weightHistory.forEach(entry => {
+                const date = new Date(entry.date);
+                // Format like "April 2025"
+                const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+                
+                if (!monthsMap.has(monthYear)) {
+                    monthsMap.set(monthYear, {
+                        name: monthYear,
+                        entries: [],
+                        month: date.getMonth(),
+                        year: date.getFullYear()
+                    });
+                }
+                
+                monthsMap.get(monthYear).entries.push(entry);
+            });
+            
+            // Convert to array and sort chronologically (newest first)
+            const monthsArr = Array.from(monthsMap.values());
+            monthsArr.sort((a, b) => {
+                const dateA = new Date(a.year, a.month);
+                const dateB = new Date(b.year, b.month);
+                return dateB - dateA; // Most recent first
+            });
+            
+            setAvailableMonths(monthsArr);
+            
+            // If a month is selected, generate weeks for that month
+            if (selectedMonth) {
+                const monthData = monthsArr.find(m => m.name === selectedMonth.name);
+                if (monthData) {
+                    generateWeeksForMonth(monthData);
+                }
+            }
+        }
+    }, [weightHistory, selectedMonth]);
+    
+    // Generate weeks for a specific month - completely rewritten to fix duplicates
+    const generateWeeksForMonth = (monthData) => {
+        console.log("Generating weeks for month:", monthData.name);
+        
+        // Get entries for this month
+        const entries = monthData.entries;
+        
+        if (!entries || entries.length === 0) {
+            console.log("No entries found for month:", monthData.name);
+            setAvailableWeeks([]);
+            return;
+        }
+
+        // Use a set to track unique week keys
+        const uniqueWeeks = new Set();
+        // Use an object to store week data by key
+        const weeksByKey = {};
+        
+        // First, get all dates in this month (not just dates with entries)
+        const year = monthData.year;
+        const month = monthData.month;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        // Generate all possible weeks for this month
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            
+            // Find the start of week (Sunday)
+            const startOfWeek = new Date(date);
+            const dayOfWeek = startOfWeek.getDay();
+            startOfWeek.setDate(date.getDate() - dayOfWeek); // Go back to Sunday
+            
+            // End of week is Saturday
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            
+            // Create a unique key for this week - use ISO string of start date
+            const weekKey = startOfWeek.toISOString().split('T')[0];
+            
+            // If this is a new unique week, add it
+            if (!uniqueWeeks.has(weekKey)) {
+                uniqueWeeks.add(weekKey);
+                
+                // Create a formatted name for display
+                const weekName = `${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                
+                weeksByKey[weekKey] = {
+                    key: weekKey,
+                    startDate: new Date(startOfWeek),
+                    endDate: new Date(endOfWeek),
+                    name: weekName,
+                    entries: []
+                };
+            }
+        }
+        
+        // Now add entries to the appropriate weeks
+        entries.forEach(entry => {
+            const entryDate = new Date(entry.date);
+            
+            // Find the start of the week for this entry
+            const startOfWeek = new Date(entryDate);
+            const dayOfWeek = startOfWeek.getDay();
+            startOfWeek.setDate(entryDate.getDate() - dayOfWeek);
+            
+            // Get the week key
+            const weekKey = startOfWeek.toISOString().split('T')[0];
+            
+            // Add this entry to the appropriate week if the week exists
+            if (weeksByKey[weekKey]) {
+                weeksByKey[weekKey].entries.push(entry);
+            }
+        });
+        
+        // Convert to array and filter out weeks with no entries
+        const weeksArray = Object.values(weeksByKey)
+            .filter(week => week.entries.length > 0);
+        
+        // Sort by date (most recent first)
+        weeksArray.sort((a, b) => b.startDate - a.startDate);
+        
+        console.log(`Generated ${weeksArray.length} unique weeks with entries for ${monthData.name}`);
+        setAvailableWeeks(weeksArray);
     };
+    
+    // Function to filter data by selected time period
+    const getFilteredChartData = () => {
+        if (!weightHistory.length) return { labels: [], datasets: [] };
+        
+        // Make a copy of the array and sort by date (oldest first for chart display)
+        const sortedHistory = [...weightHistory].sort((a, b) => 
+            new Date(a.date) - new Date(b.date)
+        );
+        
+        let filteredData = sortedHistory;
+        let timeRangeLabel = 'All Time';
+        
+        if (chartTimePeriod === 'weekly' && selectedWeek) {
+            console.log("Filtering for week:", selectedWeek.name);
+            // Filter for selected week using the date range
+            filteredData = sortedHistory.filter(entry => {
+                try {
+                    const entryDate = new Date(entry.date);
+                    // Set times to midnight for consistent comparison
+                    const entryDay = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+                    const startDay = new Date(selectedWeek.startDate.getFullYear(), selectedWeek.startDate.getMonth(), selectedWeek.startDate.getDate());
+                    const endDay = new Date(selectedWeek.endDate.getFullYear(), selectedWeek.endDate.getMonth(), selectedWeek.endDate.getDate());
+                    
+                    return entryDay >= startDay && entryDay <= endDay;
+                } catch (err) {
+                    console.error("Error comparing dates:", err);
+                    return false;
+                }
+            });
+            console.log(`Found ${filteredData.length} entries for week: ${selectedWeek.name}`);
+            timeRangeLabel = selectedWeek.name;
+        } else if (chartTimePeriod === 'monthly' && selectedMonth) {
+            console.log("Filtering for month:", selectedMonth.name);
+            // Filter for selected month using stored month data
+            const monthIndex = selectedMonth.month;
+            const yearValue = selectedMonth.year;
+            
+            filteredData = sortedHistory.filter(entry => {
+                try {
+                    const entryDate = new Date(entry.date);
+                    return entryDate.getMonth() === monthIndex && entryDate.getFullYear() === yearValue;
+                } catch (err) {
+                    console.error("Error with date:", entry.date, err);
+                    return false;
+                }
+            });
+            console.log(`Found ${filteredData.length} entries for month: ${selectedMonth.name}`);
+            timeRangeLabel = selectedMonth.name;
+        }
+        
+        return {
+            labels: filteredData.map(entry => 
+                new Date(entry.date).toLocaleDateString()
+            ),
+            datasets: [{
+                label: `Weight Progress (${timeRangeLabel})`,
+                data: filteredData.map(entry => entry.weight),
+                borderColor: '#00ff84',
+                backgroundColor: 'rgba(0, 255, 132, 0.2)',
+                tension: 0.4
+            }]
+        };
+    };
+    
+    // Handle time period change
+    const handleTimePeriodChange = (period) => {
+        setChartTimePeriod(period);
+        
+        if (period === 'monthly') {
+            // Set default selected month to most recent
+            if (availableMonths.length > 0 && !selectedMonth) {
+                setSelectedMonth(availableMonths[0]);
+                // This will trigger the useEffect to generate weeks for this month
+            }
+        } else if (period === 'weekly') {
+            // For direct weekly view, use current month's weeks
+            const currentDate = new Date();
+            const currentMonthYear = currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            
+            // Find current month in available months
+            const currentMonthData = availableMonths.find(m => m.name === currentMonthYear);
+            
+            if (currentMonthData) {
+                setSelectedMonth(currentMonthData);
+                setChartTimePeriod('weekly');
+                // This will trigger the useEffect to generate weeks
+            } else if (availableMonths.length > 0) {
+                // If current month not found, use most recent month
+                setSelectedMonth(availableMonths[0]);
+                setChartTimePeriod('weekly');
+                // This will trigger the useEffect to generate weeks
+            }
+        } else {
+            // For 'all' period, clear selections
+            setSelectedWeek(null);
+        }
+        
+        setShowTimeFilter(false);
+    };
+    
+    // Modify handleMonthSelect to show weeks for the selected month
+    const handleMonthSelect = (month) => {
+        setSelectedMonth(month);
+        setChartTimePeriod('monthly'); 
+        
+        // Generate weeks for the selected month
+        if (month) {
+            const monthData = availableMonths.find(m => m.name === month.name);
+            if (monthData) {
+                generateWeeksForMonth(monthData);
+            }
+        }
+    };
+    
+    // Handle week selection
+    const handleWeekSelect = (week) => {
+        console.log("Selected week:", week.name, "with key:", week.key || "no key");
+        // Make sure week has a key property for consistent comparison
+        const weekWithKey = week.key ? week : {
+            ...week,
+            key: week.startDate.toISOString().split('T')[0]
+        };
+        setSelectedWeek(weekWithKey);
+        setChartTimePeriod('weekly');
+        // Always close the dropdown after selecting a week
+        setShowTimeFilter(false);
+    };
+    
+    // Modify the getTimeFilterLabel function for better display
+    const getTimeFilterLabel = () => {
+        if (chartTimePeriod === 'all') {
+            return 'All Time';
+        } else if (chartTimePeriod === 'monthly') {
+            return selectedMonth ? selectedMonth.name : 'Monthly';
+        } else if (chartTimePeriod === 'weekly') {
+            return selectedWeek ? selectedWeek.name : 'Weekly';
+        } else {
+            return 'All Time';
+        }
+    };
+    
+    // Use the filtered data for the chart
+    const chartData = getFilteredChartData();
 
     const chartOptions = {
         responsive: true,
@@ -624,104 +902,190 @@ const WeightTracking = () => {
                     <div className="weight-value">{currentWeight} kg</div>
                 </div>
 
-                <div className="weight-input-section">
-                    <div className="weight-section-header">
-                        <div className="info-icon-container" onClick={() => setShowInfoPopup(true)}>
-                            <FaInfoCircle className="info-icon" />
-                        </div>
-                        <h3>Update Weight</h3>
-                    </div>
-                    <div className="weight-input-wrapper">
-                        <input
-                            type="text"
-                            value={weightInput}
-                            onChange={handleInputChange}
-                            placeholder="Enter weight change"
-                            step="0.1"
-                            className="weight-input"
-                            disabled={isButtonDisabled}
-                        />
-                    </div>
-                    <div className="weight-buttons">
-                        <button 
-                            onClick={hasLoggedToday ? handleAlreadyLoggedClick : () => handleWeightChange('decrease')}
-                            className={`weight-btn decrease ${isButtonDisabled ? 'disabled' : ''}`}
-                            disabled={isButtonDisabled || !weightInput || isNaN(parseFloat(weightInput)) || parseFloat(weightInput) < 1 || parseFloat(weightInput) > 2}
-                        >
-                            LOST -{weightInput || '0'} KG
-                        </button>
-                        <button 
-                            onClick={hasLoggedToday ? handleAlreadyLoggedClick : () => handleWeightChange('increase')}
-                            className={`weight-btn increase ${isButtonDisabled ? 'disabled' : ''}`}
-                            disabled={isButtonDisabled}
-                        >
-                            GAINED +{weightInput || '1'} KG
-                        </button>
-                    </div>
+                {/* Add tab navigation */}
+                <div className="weight-tracking-tabs">
+                    <button 
+                        className={`weight-tab ${activeTab === 'update' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('update')}
+                    >
+                        Update Weight
+                    </button>
+                    <button 
+                        className={`weight-tab ${activeTab === 'progress' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('progress')}
+                    >
+                        Weight Progress
+                    </button>
+                    <button 
+                        className={`weight-tab ${activeTab === 'history' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('history')}
+                    >
+                        History
+                    </button>
+                </div>
 
-                    {/* Weight info popup */}
-                    {showInfoPopup && (
-                        <div className="weight-info-popup">
-                            <div className="weight-info-popup-content">
-                                <button 
-                                    className="close-popup-btn" 
-                                    onClick={() => setShowInfoPopup(false)}
-                                >
-                                    <FaTimes />
-                                </button>
-                                <h4>Weight Tracking Limits</h4>
-                                <ul>
-                                    <li>You can log only one weight change per day</li>
-                                    <li>Weight loss: Must be between 1-2 kg per entry</li>
-                                    <li>Weight gain: Fixed at exactly 1 kg per entry</li>
-                                    <li>Weight must be between 40 kg and 500 kg</li>
-                                </ul>
+                {/* Update Weight Tab Content */}
+                {activeTab === 'update' && (
+                    <div className="weight-input-section">
+                        <div className="weight-section-header">
+                            <div className="info-icon-container" onClick={() => setShowInfoPopup(true)}>
+                                <FaInfoCircle className="info-icon" />
                             </div>
+                            <h3>Update Weight</h3>
                         </div>
-                    )}
+                        <div className="weight-input-wrapper">
+                            <input
+                                type="text"
+                                value={weightInput}
+                                onChange={handleInputChange}
+                                placeholder="Enter weight change"
+                                step="0.1"
+                                className="weight-input"
+                                disabled={isButtonDisabled}
+                            />
+                        </div>
+                        <div className="weight-buttons">
+                            <button 
+                                onClick={hasLoggedToday ? handleAlreadyLoggedClick : () => handleWeightChange('decrease')}
+                                className={`weight-btn decrease ${isButtonDisabled ? 'disabled' : ''}`}
+                                disabled={isButtonDisabled || !weightInput || isNaN(parseFloat(weightInput)) || parseFloat(weightInput) < 1 || parseFloat(weightInput) > 2}
+                            >
+                                LOST -{weightInput || '0'} KG
+                            </button>
+                            <button 
+                                onClick={hasLoggedToday ? handleAlreadyLoggedClick : () => handleWeightChange('increase')}
+                                className={`weight-btn increase ${isButtonDisabled ? 'disabled' : ''}`}
+                                disabled={isButtonDisabled}
+                            >
+                                GAINED +{weightInput || '1'} KG
+                            </button>
+                        </div>
 
-                    <div className="weight-limits-info">
-                        <p>• You can log only one weight change per day</p>
-                        <p>• Weight loss: Must be between 1-2 kg per entry</p>
-                        <p>• Weight gain: Fixed at exactly 1 kg per entry</p>
-                        <p>• Weight must be between 40 kg and 500 kg</p>
-                    </div>
-                </div>
-
-                <div className="chart-container">
-                    {weightHistory.length > 0 && (
-                        <Line data={chartData} options={chartOptions} />
-                    )}
-                </div>
-
-                <div className="weight-history">
-                    <h2>History</h2>
-                    <div className="history-list">
-                        {weightHistory.map((entry) => (
-                            <div key={entry._id} className="history-item">
-                                <div className="history-info">
-                                    <span className="date">
-                                        {new Date(entry.date).toLocaleDateString()}
-                                    </span>
-                                    <span className="weight">{entry.weight} kg</span>
-                                    {entry.changeType && entry.changeType !== 'initial' && (
-                                        <span className={`change-type ${entry.changeType}`}>
-                                            {entry.changeType === 'loss' ? 'Lost' : 'Gained'} {entry.changeAmount.toFixed(1)} kg
-                                        </span>
-                                    )}
-                                    <span className="email">{entry.userEmail}</span>
+                        {/* Weight info popup */}
+                        {showInfoPopup && (
+                            <div className="weight-info-popup">
+                                <div className="weight-info-popup-content">
+                                    <button 
+                                        className="close-popup-btn" 
+                                        onClick={() => setShowInfoPopup(false)}
+                                    >
+                                        <FaTimes />
+                                    </button>
+                                    <h4>Weight Tracking Limits</h4>
+                                    <ul>
+                                        <li>You can log only one weight change per day</li>
+                                        <li>Weight loss: Must be between 1-2 kg per entry</li>
+                                        <li>Weight gain: Fixed at exactly 1 kg per entry</li>
+                                        <li>Weight must be between 40 kg and 500 kg</li>
+                                    </ul>
                                 </div>
-                                <button 
-                                    className="delete-button"
-                                    onClick={() => handleDelete(entry._id)}
-                                >
-                                    <span className="delete-text">Delete</span>
-                                    <FaTrash className="delete-icon" />
-                                </button>
                             </div>
-                        ))}
+                        )}
+
+                        <div className="weight-limits-info">
+                            <p>• You can log only one weight change per day</p>
+                            <p>• Weight loss: Up to 2 kg per entry</p>
+                            <p>• Weight gain: Up to 1 kg per entry</p>
+                            <p>• Weight must be between 40 kg and 500 kg</p>
+                        </div>
                     </div>
-                </div>
+                )}
+
+                {/* Weight Progress Tab Content */}
+                {activeTab === 'progress' && (
+                    <div id="progress-tab-content">
+                        {/* Move dropdown outside the chart-container */}
+                        <div className="weight-time-filter" ref={timeFilterRef}>
+                            <div 
+                                className="weight-time-filter-selector" 
+                                onClick={() => setShowTimeFilter(!showTimeFilter)}
+                            >
+                                <span>{getTimeFilterLabel()}</span>
+                                <FaChevronDown className="dropdown-icon" />
+                            </div>
+                            {showTimeFilter && (
+                                <div className="weight-time-dropdown">
+                                    <div 
+                                        className={`time-option ${chartTimePeriod === 'all' ? 'active' : ''}`}
+                                        onClick={() => handleTimePeriodChange('all')}
+                                    >
+                                        All Time
+                                    </div>
+                                    <div 
+                                        className={`time-option ${chartTimePeriod === 'monthly' && !selectedMonth ? 'active' : ''}`}
+                                        onClick={() => handleTimePeriodChange('monthly')}
+                                    >
+                                        Monthly
+                                    </div>
+                                    {availableMonths.map((month, idx) => (
+                                        <div 
+                                            key={idx}
+                                            className={`time-option indent ${selectedMonth && selectedMonth.name === month.name ? 'active' : ''}`}
+                                            onClick={() => handleMonthSelect(month)}
+                                        >
+                                            {month.name}
+                                        </div>
+                                    ))}
+                                    <div 
+                                        className={`time-option ${chartTimePeriod === 'weekly' ? 'active' : ''}`}
+                                        onClick={() => handleTimePeriodChange('weekly')}
+                                    >
+                                        Weekly
+                                    </div>
+                                    {selectedMonth && availableWeeks.length > 0 && (
+                                        availableWeeks.map((week) => (
+                                            <div 
+                                                key={`week-${week.key || week.startDate.toISOString()}`}
+                                                className={`time-option indent ${selectedWeek && (selectedWeek.key === week.key || (selectedWeek.startDate.getTime() === week.startDate.getTime() && selectedWeek.endDate.getTime() === week.endDate.getTime())) ? 'active' : ''}`}
+                                                onClick={() => handleWeekSelect(week)}
+                                            >
+                                                {week.name}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <div className="chart-container">
+                            {weightHistory.length > 0 ? (
+                                <Line data={chartData} options={chartOptions} />
+                            ) : (
+                                <div className="no-data-message">No weight data available. Start tracking to see your progress!</div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* History Tab Content */}
+                {activeTab === 'history' && (
+                    <div className="weight-history">
+                        <h2>Weight History</h2>
+                        <div className="history-list">
+                            {weightHistory.map((entry) => (
+                                <div key={entry._id} className="history-item">
+                                    <div className="history-info">
+                                        <span className="date">
+                                            {new Date(entry.date).toLocaleDateString()}
+                                        </span>
+                                        <span className="weight">{entry.weight} kg</span>
+                                        {entry.changeType && entry.changeType !== 'initial' && (
+                                            <span className={`change-type ${entry.changeType}`}>
+                                                {entry.changeType === 'loss' ? 'Lost' : 'Gained'} {entry.changeAmount.toFixed(1)} kg
+                                            </span>
+                                        )}
+                                    </div>
+                                    <button 
+                                        className="delete-button"
+                                        onClick={() => handleDelete(entry._id)}
+                                    >
+                                        <span className="delete-text">Delete</span>
+                                        <FaTrash className="delete-icon" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="toast-container">
@@ -736,14 +1100,6 @@ const WeightTracking = () => {
                     />
                 ))}
             </div>
-
-            {showConfirmModal.show && (
-                <ConfirmModal
-                    message="You are about to delete this weight record."
-                    onConfirm={confirmDelete}
-                    onCancel={() => setShowConfirmModal({ show: false, id: null })}
-                />
-            )}
         </div>
     );
 };

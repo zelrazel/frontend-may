@@ -25,6 +25,8 @@
     font-size: 24px;
     margin: 0;
     text-shadow: 0 0 10px rgba(0, 255, 132, 0.3);
+    position: relative;
+    top: 3px;
 }
 
 .notifications-actions {
@@ -435,15 +437,26 @@
 /* Responsive */
 @media (max-width: 768px) {
     .notifications-container {
-        margin: 10px;
-        padding: 12px;
+        margin: 2px;
+        margin-top: 0;
+        padding: 8px;
+        padding-top: 2px;
         max-width: 100%;
     }
     
     .notifications-header {
+        margin-top: 0;
+        padding-top: 0;
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+    }
+    
+    .notifications-header h1 {
+        position: relative;
+        top: 30px;
     }
     
     .notifications-actions {
@@ -495,8 +508,9 @@
 
 @media (max-width: 480px) {
     .notifications-container {
-        margin: 5px;
-        padding: 10px;
+        margin: 0;
+        padding: 8px;
+        padding-top: 0;
         border-radius: 5px;
     }
     
@@ -520,7 +534,9 @@
 
     .notifications-actions {
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
         width: 100%;
     }
 

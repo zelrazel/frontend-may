@@ -90,7 +90,7 @@ function Workouts() {
         <GiGymBag className="program-icon" />
         <h3>Machine Exercises</h3>
         <p className="program-description">
-          Guided resistance training with specialized equipment. Ideal for targeted muscle development with controlled motion paths.
+          A resistance training with specialized equipment. Ideal for targeted muscle development with controlled motion paths.
         </p>
       </div>
 

@@ -132,6 +132,7 @@
     max-width: 750px; 
     margin-left: auto;
     margin-right: auto;
+    position: relative;
 }
 
 .weight-history {
@@ -520,7 +521,7 @@
 
 @media (max-width: 768px) {
     .weight-tracking-container {
-        padding: 1rem;
+        padding: 0.8rem;
     }
     
     .input-group {
@@ -799,12 +800,15 @@
 
 @media (max-width: 768px) {
     .weight-tracking-container {
-        padding: 1rem;
+        padding: 0.8rem;
     }
     
     .weight-tracking-card {
-        max-width: 95%;
-        padding: 1.5rem;
+        max-width: 98%;
+        width: 98%;
+        padding: 1.2rem;
+        margin: 0 auto;
+        border-radius: 35px;
     }
     
     .current-weight-display {
@@ -1507,6 +1511,588 @@
     
     .delete-icon {
         font-size: 12px;
+    }
+}
+
+/* Weight chart time period filters */
+.weight-chart-filters {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    background: rgba(10, 10, 10, 0.7);
+    padding: 5px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 255, 132, 0.2);
+}
+
+.weight-period-btn {
+    background: rgba(27, 67, 50, 0.7);
+    color: #e0e0e0;
+    border: 1px solid rgba(0, 169, 81, 0.3);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.weight-period-btn:hover {
+    background: rgba(0, 169, 81, 0.2);
+    color: #ffffff;
+}
+
+.weight-period-btn.active {
+    background: rgba(0, 255, 132, 0.2);
+    color: #00ff84;
+    border-color: #00ff84;
+    box-shadow: 0 0 10px rgba(0, 255, 132, 0.2);
+}
+
+/* No data message styling */
+.no-data-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #a0a0a0;
+    font-style: italic;
+    text-align: center;
+    padding: 0 2rem;
+}
+
+/* Responsive styles for chart filters */
+@media screen and (max-width: 768px) {
+    .weight-chart-filters {
+        position: static;
+        margin-bottom: 15px;
+        padding: 5px;
+    }
+    
+    .weight-period-btn {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    
+    .chart-container {
+        padding-top: 1rem;
+        height: 350px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .weight-chart-filters {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .weight-period-btn {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+        flex: 1;
+        min-width: 70px;
+    }
+}
+
+/* Weight time filter dropdown - Simple Clean UI */
+.weight-time-filter {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    z-index: 10;
+    width: 150px;
+    font-family: 'Inter', sans-serif;
+}
+
+.weight-time-filter-selector {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(10, 10, 10, 0.95);
+    color: #fff;
+    border: 1px solid var(--neon-green);
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 8px rgba(0, 255, 132, 0.2);
+}
+
+.weight-time-filter-selector:hover {
+    background: rgba(15, 15, 15, 1);
+    box-shadow: 0 0 12px rgba(0, 255, 132, 0.3);
+}
+
+.dropdown-icon {
+    font-size: 12px;
+    margin-left: 5px;
+    transition: transform 0.2s ease;
+}
+
+.weight-time-filter-selector:hover .dropdown-icon {
+    transform: translateY(2px);
+}
+
+.weight-time-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 5px;
+    background: rgba(10, 10, 10, 0.95);
+    border: 1px solid var(--neon-green);
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 8px rgba(0, 255, 132, 0.2);
+    overflow: hidden;
+    max-height: 350px;
+    overflow-y: auto;
+    animation: fadeInDown 0.2s ease-out;
+    padding: 0;
+}
+
+/* Options styling */
+.time-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: normal;
+    background: rgba(10, 10, 10, 0.95);
+}
+
+.time-option:hover {
+    background: rgba(15, 15, 15, 0.95);
+}
+
+.time-option.active {
+    color: #00ff84;
+    font-weight: 500;
+    background: rgba(10, 10, 10, 0.95);
+}
+
+/* Scrollbar styling */
+.weight-time-dropdown::-webkit-scrollbar {
+    width: 4px;
+}
+
+.weight-time-dropdown::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.weight-time-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 132, 0.2);
+    border-radius: 3px;
+}
+
+.weight-time-dropdown::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 132, 0.3);
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .weight-time-filter {
+        position: absolute;
+        top: -70px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 180px;
+        margin: 0;
+        z-index: 20;
+    }
+    
+    .weight-time-filter-selector {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        margin: 0;
+        box-shadow: 0 0 15px rgba(0, 255, 132, 0.3);
+        border-radius: 8px;
+        border: 2px solid var(--neon-green);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .weight-time-dropdown {
+        position: absolute;
+        top: 115%;
+        left: 0;
+        right: 0;
+        transform: none;
+        width: 180px;
+        max-height: 300px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 255, 132, 0.3);
+        z-index: 30;
+        border-radius: 8px;
+        border: 2px solid var(--neon-green);
+        background: rgba(0, 0, 0, 0.95);
+    }
+    
+    .time-option {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        border-bottom: 1px solid rgba(0, 255, 132, 0.2);
+    }
+    
+    .time-option:last-child {
+        border-bottom: none;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .weight-tracking-tabs {
+        margin-bottom: 1.5rem;
+    }
+    
+    #progress-tab-content {
+        padding-top: 25px;
+        margin-top: 15px;
+    }
+    
+    .chart-container {
+        margin-top: 60px;
+        padding: 30px 8px 8px;
+    }
+    
+    .weight-time-filter {
+        width: 170px;
+        top: -70px;
+    }
+    
+    .weight-time-filter-selector {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .time-option {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+}
+
+@media screen and (max-width: 375px) {
+    .weight-tracking-tabs {
+        margin-bottom: 1.2rem;
+    }
+    
+    #progress-tab-content {
+        padding-top: 20px;
+        margin-top: 10px;
+    }
+    
+    .chart-container {
+        margin-top: 55px;
+        padding: 25px 5px 5px;
+    }
+    
+    .weight-time-filter {
+        width: 150px;
+        top: -70px;
+    }
+}
+
+/* Add style for indented options with improved styling to match the screenshots */
+.time-option.indent {
+    padding-left: 20px;
+    font-size: 0.85rem;
+    background: rgba(10, 10, 10, 0.95);
+}
+
+/* Fix active state to use green text like in the screenshots */
+.time-option.active {
+    color: #00ff84;
+    font-weight: 500;
+    background: rgba(10, 10, 10, 0.95);
+}
+
+/* Non-active items should have white text */
+.time-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: normal;
+    background: rgba(10, 10, 10, 0.95);
+}
+
+/* Hover state should be subtle */
+.time-option:hover {
+    background: rgba(15, 15, 15, 0.95);
+}
+
+/* Dropdown container should have no padding to match screenshot */
+.weight-time-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 5px;
+    background: rgba(10, 10, 10, 0.95);
+    border: 1px solid var(--neon-green);
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 8px rgba(0, 255, 132, 0.2);
+    overflow: hidden;
+    max-height: 350px;
+    overflow-y: auto;
+    animation: fadeInDown 0.2s ease-out;
+    padding: 0;
+}
+
+@media screen and (max-width: 768px) {
+    .time-option.indent {
+        padding-left: 15px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Weight Tracking Tabs */
+.weight-tracking-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    padding: 0 1rem;
+}
+
+.weight-tab {
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.weight-tab::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--neon-green);
+    transition: width 0.3s ease;
+}
+
+.weight-tab:hover {
+    color: var(--text-primary);
+}
+
+.weight-tab:hover::after {
+    width: 100%;
+}
+
+.weight-tab.active {
+    color: var(--neon-green);
+}
+
+.weight-tab.active::after {
+    width: 100%;
+    box-shadow: 0 0 10px var(--neon-green);
+}
+
+/* Mobile Responsive Tabs */
+@media (max-width: 768px) {
+    .weight-tracking-tabs {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.3rem;
+        margin: 1.5rem 0 2rem;
+        padding: 0 0.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 30px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 169, 81, 0.3);
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+        z-index: 5;
+    }
+
+    .weight-tab {
+        flex: 1;
+        padding: 0.8rem 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 0;
+        position: relative;
+        font-size: 0.75rem;
+    }
+    
+    .weight-tab.active {
+        background: rgba(0, 169, 81, 0.2);
+        border-radius: 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    .weight-tracking-tabs {
+        width: 98%;
+        border-radius: 25px;
+        padding: 0.3rem;
+    }
+    
+    .weight-tab {
+        padding: 0.7rem 0;
+        font-size: 0.65rem;
+    }
+}
+
+/* Mobile responsiveness improvements */
+@media (max-width: 768px) {
+    .weight-tracking-container {
+        padding: 0.8rem;
+    }
+    
+    .weight-tracking-card {
+        max-width: 98%;
+        width: 98%;
+        padding: 1.2rem;
+        margin: 0 auto;
+        border-radius: 35px;
+    }
+    
+    .weight-tab {
+        font-size: 0.75rem;
+    }
+    
+    /* Ensure content areas adjust properly */
+    .chart-container,
+    .weight-history,
+    .weight-input-section {
+        width: 98%;
+        max-width: 520px;
+        margin: 1rem auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .weight-tracking-container {
+        padding: 0.5rem;
+    }
+    
+    .weight-tracking-card {
+        width: 100%;
+        padding: 1rem;
+    }
+    
+    .weight-tab {
+        font-size: 0.65rem;
+    }
+}
+
+/* Progress tab content positioning for mobile */
+@media screen and (max-width: 768px) {
+    /* Tab content container positioning */
+    #progress-tab-content {
+        position: relative;
+        padding-top: 30px;
+        margin-top: 20px;
+    }
+    
+    /* Chart container in progress tab */
+    .chart-container {
+        position: relative;
+        margin-top: 65px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+        z-index: 5;
+        padding: 35px 10px 10px;
+    }
+    
+    /* Time filter dropdown positioning */
+    .weight-time-filter {
+        position: absolute;
+        top: -70px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        width: 200px;
+        margin: 0;
+        z-index: 20;
+    }
+    
+    .weight-time-filter-selector {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+        margin: 0;
+        box-shadow: 0 0 15px rgba(0, 255, 132, 0.3);
+        border-radius: 8px;
+        border: 2px solid var(--neon-green);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .weight-tracking-tabs {
+        margin-bottom: 1.5rem;
+    }
+    
+    #progress-tab-content {
+        padding-top: 25px;
+        margin-top: 15px;
+    }
+    
+    .chart-container {
+        margin-top: 60px;
+        padding: 30px 8px 8px;
+    }
+    
+    .weight-time-filter {
+        width: 170px;
+        top: -70px;
+    }
+}
+
+@media screen and (max-width: 375px) {
+    .weight-tracking-tabs {
+        margin-bottom: 1.2rem;
+    }
+    
+    #progress-tab-content {
+        padding-top: 20px;
+        margin-top: 10px;
+    }
+    
+    .chart-container {
+        margin-top: 55px;
+        padding: 25px 5px 5px;
+    }
+    
+    .weight-time-filter {
+        width: 150px;
+        top: -70px;
     }
 }
 

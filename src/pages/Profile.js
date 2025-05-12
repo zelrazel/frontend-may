@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback, Component, useRef } from 'react';
 import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
-import { FaUser, FaCamera, FaTrash, FaTimes, FaWeight, FaDumbbell, FaCalendarCheck, FaSync, FaGraduationCap, FaComment, FaChevronDown, FaChevronUp, FaPaperPlane, FaHeart, FaFire, FaThumbsUp, FaHandPeace, FaArrowDown, FaArrowUp, FaMedal, FaChartLine, FaCogs, FaClock, FaFilter } from 'react-icons/fa';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { FaUser, FaCamera, FaTrash, FaTimes, FaWeight, FaDumbbell, FaCalendarCheck, FaSync, FaGraduationCap, FaComment, FaChevronDown, FaChevronUp, FaPaperPlane, FaHeart, FaFire, FaThumbsUp, FaHandPeace, FaArrowDown, FaArrowUp, FaMedal, FaChartLine, FaCogs, FaClock, FaFilter, FaUserFriends } from 'react-icons/fa';
 import Swal from 'sweetalert2'; 
 import '../styles/Profile.css';
 import '../styles/WorkoutActivities.css';
 import '../styles/ScheduledWorkoutActivities.css';
 import '../styles/WeightActivityStyles.css';
+import { Bar, Line } from 'react-chartjs-2';
+import Friends from './Friends';
 
 
 
@@ -138,10 +140,355 @@ const Profile = () => {
 
     const [showActivityFilters, setShowActivityFilters] = useState(false);
 
+    // Add state for workout/weight tracking data
+    const [profileWorkoutData, setProfileWorkoutData] = useState({ completed: [], loading: true });
+    const [profileWeightData, setProfileWeightData] = useState({ history: [], loading: true });
+    const [profileWorkoutTimePeriod, setProfileWorkoutTimePeriod] = useState('all');
+    const [profileWorkoutShowTimeFilter, setProfileWorkoutShowTimeFilter] = useState(false);
+    const [profileWorkoutAvailableMonths, setProfileWorkoutAvailableMonths] = useState([]);
+    const [profileWorkoutAvailableWeeks, setProfileWorkoutAvailableWeeks] = useState([]);
+    const [profileWorkoutSelectedMonth, setProfileWorkoutSelectedMonth] = useState(null);
+    const [profileWorkoutSelectedWeek, setProfileWorkoutSelectedWeek] = useState(null);
+    const [profileWeightTimePeriod, setProfileWeightTimePeriod] = useState('all');
+    const [profileWeightShowTimeFilter, setProfileWeightShowTimeFilter] = useState(false);
+    const [profileWeightAvailableMonths, setProfileWeightAvailableMonths] = useState([]);
+    const [profileWeightAvailableWeeks, setProfileWeightAvailableWeeks] = useState([]);
+    const [profileWeightSelectedMonth, setProfileWeightSelectedMonth] = useState(null);
+    const [profileWeightSelectedWeek, setProfileWeightSelectedWeek] = useState(null);
+
+    // Add these refs near the top of the Profile component, after other useRef declarations
+    const profileWorkoutTimeFilterRef = useRef(null);
+    const profileWeightTimeFilterRef = useRef(null);
+
+    const location = useLocation();
+
+    // Add click-outside logic for workout tracking dropdown
+    useEffect(() => {
+        function handleClickOutsideWorkout(event) {
+            if (profileWorkoutTimeFilterRef.current && !profileWorkoutTimeFilterRef.current.contains(event.target)) {
+                setProfileWorkoutShowTimeFilter(false);
+            }
+        }
+        if (profileWorkoutShowTimeFilter) {
+            document.addEventListener('mousedown', handleClickOutsideWorkout);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutsideWorkout);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutsideWorkout);
+        };
+    }, [profileWorkoutShowTimeFilter]);
+
+    // Add click-outside logic for weight tracking dropdown
+    useEffect(() => {
+        function handleClickOutsideWeight(event) {
+            if (profileWeightTimeFilterRef.current && !profileWeightTimeFilterRef.current.contains(event.target)) {
+                setProfileWeightShowTimeFilter(false);
+            }
+        }
+        if (profileWeightShowTimeFilter) {
+            document.addEventListener('mousedown', handleClickOutsideWeight);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutsideWeight);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutsideWeight);
+        };
+    }, [profileWeightShowTimeFilter]);
+
+    // Fetch workout tracking data for profile
+    useEffect(() => {
+        if (!user) return;
+        const fetchProfileWorkoutData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                const response = await axios.get(`${API_URL}api/workouts/completed${profileEmail ? `?email=${profileEmail}` : ''}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setProfileWorkoutData({ completed: response.data, loading: false });
+                // Generate months for filter
+                const monthsMap = new Map();
+                response.data.forEach(entry => {
+                    const date = new Date(entry.completedDate || entry.date);
+                    const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+                    if (!monthsMap.has(monthYear)) {
+                        monthsMap.set(monthYear, {
+                            name: monthYear,
+                            entries: [],
+                            month: date.getMonth(),
+                            year: date.getFullYear()
+                        });
+                    }
+                    monthsMap.get(monthYear).entries.push(entry);
+                });
+                const monthsArr = Array.from(monthsMap.values());
+                monthsArr.sort((a, b) => {
+                    const dateA = new Date(a.year, a.month);
+                    const dateB = new Date(b.year, b.month);
+                    return dateB - dateA;
+                });
+                setProfileWorkoutAvailableMonths(monthsArr);
+            } catch (e) {
+                setProfileWorkoutData({ completed: [], loading: false });
+            }
+        };
+        fetchProfileWorkoutData();
+    }, [user, profileEmail]);
+
+    // Fetch weight tracking data for profile
+    useEffect(() => {
+        if (!user) return;
+        const fetchProfileWeightData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                const response = await axios.get(`${API_URL}api/weight/history${profileEmail ? `?email=${profileEmail}` : ''}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setProfileWeightData({ history: response.data, loading: false });
+                // Generate months for filter
+                const monthsMap = new Map();
+                response.data.forEach(entry => {
+                    const date = new Date(entry.date);
+                    const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+                    if (!monthsMap.has(monthYear)) {
+                        monthsMap.set(monthYear, {
+                            name: monthYear,
+                            entries: [],
+                            month: date.getMonth(),
+                            year: date.getFullYear()
+                        });
+                    }
+                    monthsMap.get(monthYear).entries.push(entry);
+                });
+                const monthsArr = Array.from(monthsMap.values());
+                monthsArr.sort((a, b) => {
+                    const dateA = new Date(a.year, a.month);
+                    const dateB = new Date(b.year, b.month);
+                    return dateB - dateA;
+                });
+                setProfileWeightAvailableMonths(monthsArr);
+            } catch (e) {
+                setProfileWeightData({ history: [], loading: false });
+            }
+        };
+        fetchProfileWeightData();
+    }, [user, profileEmail]);
+
+    // Helper: filter workouts for chart
+    const getProfileFilteredWorkouts = () => {
+        let filtered = [...profileWorkoutData.completed];
+        if (profileWorkoutTimePeriod === 'weekly' && profileWorkoutSelectedWeek) {
+            filtered = filtered.filter(workout => {
+                const workoutDate = new Date(workout.completedDate || workout.date);
+                const workoutDay = new Date(workoutDate.getFullYear(), workoutDate.getMonth(), workoutDate.getDate());
+                const startDay = new Date(profileWorkoutSelectedWeek.startDate.getFullYear(), profileWorkoutSelectedWeek.startDate.getMonth(), profileWorkoutSelectedWeek.startDate.getDate());
+                const endDay = new Date(profileWorkoutSelectedWeek.endDate.getFullYear(), profileWorkoutSelectedWeek.endDate.getMonth(), profileWorkoutSelectedWeek.endDate.getDate());
+                return workoutDay >= startDay && workoutDay <= endDay;
+            });
+        } else if (profileWorkoutTimePeriod === 'monthly' && profileWorkoutSelectedMonth) {
+            filtered = filtered.filter(workout => {
+                const workoutDate = new Date(workout.completedDate || workout.date);
+                return workoutDate.getMonth() === profileWorkoutSelectedMonth.month && workoutDate.getFullYear() === profileWorkoutSelectedMonth.year;
+            });
+        }
+        return filtered;
+    };
+    // Helper: filter weight history for chart
+    const getProfileFilteredWeightHistory = () => {
+        let filtered = [...profileWeightData.history];
+        if (profileWeightTimePeriod === 'weekly' && profileWeightSelectedWeek) {
+            filtered = filtered.filter(entry => {
+                const entryDate = new Date(entry.date);
+                const entryDay = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+                const startDay = new Date(profileWeightSelectedWeek.startDate.getFullYear(), profileWeightSelectedWeek.startDate.getMonth(), profileWeightSelectedWeek.startDate.getDate());
+                const endDay = new Date(profileWeightSelectedWeek.endDate.getFullYear(), profileWeightSelectedWeek.endDate.getMonth(), profileWeightSelectedWeek.endDate.getDate());
+                return entryDay >= startDay && entryDay <= endDay;
+            });
+        } else if (profileWeightTimePeriod === 'monthly' && profileWeightSelectedMonth) {
+            filtered = filtered.filter(entry => {
+                const entryDate = new Date(entry.date);
+                return entryDate.getMonth() === profileWeightSelectedMonth.month && entryDate.getFullYear() === profileWeightSelectedMonth.year;
+            });
+        }
+        return filtered;
+    };
+    // Helper: generate weeks for a given month (for both workout and weight tracking)
+    const generateProfileWeeksForMonth = (monthData, type) => {
+        const entries = monthData.entries;
+        if (!entries || entries.length === 0) return [];
+        const year = monthData.year;
+        const month = monthData.month;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const uniqueWeeks = new Set();
+        const weeksByKey = {};
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const startOfWeek = new Date(date);
+            const dayOfWeek = startOfWeek.getDay();
+            startOfWeek.setDate(date.getDate() - dayOfWeek);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            const weekKey = startOfWeek.toISOString().split('T')[0];
+            if (!uniqueWeeks.has(weekKey)) {
+                uniqueWeeks.add(weekKey);
+                const weekName = `${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                weeksByKey[weekKey] = {
+                    key: weekKey,
+                    startDate: new Date(startOfWeek),
+                    endDate: new Date(endOfWeek),
+                    name: weekName,
+                    entries: []
+                };
+            }
+        }
+        entries.forEach(entry => {
+            const entryDate = new Date(entry.date || entry.completedDate);
+            const startOfWeek = new Date(entryDate);
+            const dayOfWeek = startOfWeek.getDay();
+            startOfWeek.setDate(entryDate.getDate() - dayOfWeek);
+            const weekKey = startOfWeek.toISOString().split('T')[0];
+            if (weeksByKey[weekKey]) {
+                weeksByKey[weekKey].entries.push(entry);
+            }
+        });
+        const weeksArray = Object.values(weeksByKey).filter(week => week.entries.length > 0);
+        weeksArray.sort((a, b) => b.startDate - a.startDate);
+        if (type === 'workout') setProfileWorkoutAvailableWeeks(weeksArray);
+        else setProfileWeightAvailableWeeks(weeksArray);
+    };
+    // Chart data for workout tracking
+    const getProfileWorkoutCategoryChartData = () => {
+        const filtered = getProfileFilteredWorkouts();
+        if (!filtered.length) {
+            return {
+                labels: ['No Data'],
+                datasets: [{ data: [1], backgroundColor: ['#ccc'], borderColor: ['#999'] }]
+            };
+        }
+        const categories = { 'Dumbbell': 0, 'Machine': 0, 'Barbell': 0, 'Bodyweight': 0 };
+        filtered.forEach(workout => { if (categories[workout.category] !== undefined) categories[workout.category]++; });
+        return {
+            labels: Object.keys(categories),
+            datasets: [{
+                label: 'Completed Workouts by Category',
+                data: Object.values(categories),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)',
+                    'rgba(54, 162, 235, 0.5)',
+                    'rgba(255, 206, 86, 0.5)',
+                    'rgba(75, 192, 192, 0.5)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+    };
+    const getProfileWorkoutTargetChartData = () => {
+        const filtered = getProfileFilteredWorkouts();
+        if (!filtered.length) {
+            return {
+                labels: ['No Data'],
+                datasets: [{ data: [1], backgroundColor: ['#ccc'], borderColor: ['#999'] }]
+            };
+        }
+        const targets = {};
+        filtered.forEach(workout => { const target = workout.target; if (!targets[target]) targets[target] = 0; targets[target]++; });
+        const entries = Object.entries(targets).sort((a, b) => b[1] - a[1]);
+        let labels = [], data = [], backgroundColor = [], borderColor = [];
+        const colors = [
+            ['rgba(255, 99, 132, 0.5)', 'rgba(255, 99, 132, 1)'],
+            ['rgba(54, 162, 235, 0.5)', 'rgba(54, 162, 235, 1)'],
+            ['rgba(255, 206, 86, 0.5)', 'rgba(255, 206, 86, 1)'],
+            ['rgba(75, 192, 192, 0.5)', 'rgba(75, 192, 192, 1)'],
+            ['rgba(153, 102, 255, 0.5)', 'rgba(153, 102, 255, 1)'],
+            ['rgba(255, 159, 64, 0.5)', 'rgba(255, 159, 64, 1)'],
+            ['rgba(199, 199, 199, 0.5)', 'rgba(199, 199, 199, 1)'],
+            ['rgba(83, 102, 255, 0.5)', 'rgba(83, 102, 255, 1)'],
+        ];
+        const topEntries = entries.slice(0, Math.min(8, entries.length));
+        topEntries.forEach((entry, index) => {
+            labels.push(entry[0]);
+            data.push(entry[1]);
+            backgroundColor.push(colors[index % colors.length][0]);
+            borderColor.push(colors[index % colors.length][1]);
+        });
+        if (entries.length > 8) {
+            const otherSum = entries.slice(8).reduce((sum, entry) => sum + entry[1], 0);
+            labels.push('Other');
+            data.push(otherSum);
+            backgroundColor.push('rgba(128, 128, 128, 0.5)');
+            borderColor.push('rgba(128, 128, 128, 1)');
+        }
+        return {
+            labels,
+            datasets: [{
+                label: 'Completed Workouts by Target Muscle',
+                data,
+                backgroundColor,
+                borderColor,
+                borderWidth: 1
+            }]
+        };
+    };
+    const profileWorkoutChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: { color: '#fff', font: { size: 12 }, padding: 20 }
+            },
+            title: {
+                display: true,
+                text: 'Workout Distribution',
+                color: '#00ff84',
+                font: { size: 16 },
+                padding: { top: 10, bottom: 20 }
+            }
+        },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#fff', precision: 0 } },
+            x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#fff' } }
+        }
+    };
+    const getProfileWeightChartData = () => {
+        const filtered = getProfileFilteredWeightHistory();
+        let timeRangeLabel = 'All Time';
+        if (profileWeightTimePeriod === 'weekly' && profileWeightSelectedWeek) timeRangeLabel = profileWeightSelectedWeek.name;
+        else if (profileWeightTimePeriod === 'monthly' && profileWeightSelectedMonth) timeRangeLabel = profileWeightSelectedMonth.name;
+        return {
+            labels: filtered.map(entry => new Date(entry.date).toLocaleDateString()),
+            datasets: [{
+                label: `Weight Progress (${timeRangeLabel})`,
+                data: filtered.map(entry => entry.weight),
+                borderColor: '#00ff84',
+                backgroundColor: 'rgba(0, 255, 132, 0.2)',
+                tension: 0.4
+            }]
+        };
+    };
+    const profileWeightChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#fff' } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#fff' } }
+        },
+        plugins: { legend: { labels: { color: '#fff' } } }
+    };
+
     // Add this useEffect to handle URL parameters for notification navigation
     useEffect(() => {
-        // Parse URL parameters
-        const queryParams = new URLSearchParams(window.location.search);
+        // Parse URL parameters using React Router's location
+        const queryParams = new URLSearchParams(location.search);
         const tab = queryParams.get('tab');
         const activityId = queryParams.get('activityId');
         const commentId = queryParams.get('commentId');
@@ -164,7 +511,7 @@ const Profile = () => {
                 }));
             }
         }
-    }, [window.location.search]);
+    }, [location.search]);
     
     // Add this effect to scroll to the activity when it's loaded
     useEffect(() => {
@@ -228,6 +575,13 @@ const Profile = () => {
         }
     }, [profileEmail]);
 
+    useEffect(() => {
+        if (activeTab === 'activity' && user) {
+            setActivitiesLoading(true);
+            fetchUserActivities();
+        }
+    }, [activeTab, user]);
+
     const fetchUserActivities = useCallback(async () => {
         try {
             console.log("Starting to fetch user activities");
@@ -242,6 +596,7 @@ const Profile = () => {
             // Get current user ID from JWT token for reaction checking
             const tokenPayload = JSON.parse(atob(token.split('.')[1]));
             const currentUserId = tokenPayload.userId;
+            const currentUserEmail = tokenPayload.email;
             
             // Use query parameter to get activities for the specific user
             const targetEmail = profileEmail && !isOwnProfile ? profileEmail : undefined;
@@ -265,7 +620,7 @@ const Profile = () => {
                 return;
             }
             
-            // Process activities to extract current user's reactions
+            // Process activities to extract current user's reactions and update profile pictures
             const activitiesWithUserReactions = activitiesData.map(activity => {
                 // Check for user reactions
                 const userReactions = [];
@@ -279,10 +634,15 @@ const Profile = () => {
                     }
                 }
                 
-                return {
-                    ...activity,
-                    userReactions
-                };
+                // Create updated activity with user reactions
+                let updatedActivity = { ...activity, userReactions };
+                
+                // If this is the current user's activity, sync it with latest profile picture
+                if (user && activity.userEmail === user.email) {
+                    updatedActivity.userProfilePicture = user.profilePicture || "";
+                }
+                
+                return updatedActivity;
             });
             
             setUserActivities(activitiesWithUserReactions);
@@ -294,7 +654,7 @@ const Profile = () => {
             }
             setActivitiesLoading(false);
         }
-    }, [profileEmail, isOwnProfile]);
+    }, [profileEmail, isOwnProfile, user]);
 
     const fetchUserRanks = useCallback(async (email) => {
         try {
@@ -988,8 +1348,9 @@ const Profile = () => {
             // Get current user ID from JWT token for reaction checking
             const tokenPayload = JSON.parse(atob(token.split('.')[1]));
             const currentUserId = tokenPayload.userId;
+            const currentUserEmail = tokenPayload.email;
             
-            // Process activities to extract current user's reactions
+            // Process activities to extract current user's reactions and update profile pictures
             if (activitiesData && Array.isArray(activitiesData)) {
                 const activitiesWithUserReactions = activitiesData.map(activity => {
                     // Check for user reactions
@@ -1004,10 +1365,15 @@ const Profile = () => {
                         }
                     }
                     
-                    return {
-                        ...activity,
-                        userReactions
-                    };
+                    // Ensure profile picture is updated for user's own activities
+                    let updatedActivity = { ...activity, userReactions };
+                    
+                    // If this is the current user's activity, sync it with latest profile picture
+                    if (user && activity.userEmail === user.email) {
+                        updatedActivity.userProfilePicture = user.profilePicture || "";
+                    }
+                    
+                    return updatedActivity;
                 });
                 
                 setUserActivities(activitiesWithUserReactions);
@@ -1030,25 +1396,19 @@ const Profile = () => {
 
     useEffect(() => {
         fetchUserProfile();
-        
-        // Check for achievements regardless of which tab is active
-        fetchAchievements();
-        
-        if (activeTab === 'activity') {
-            if (!activityTabLoadedRef.current) {
-                fetchUserActivities();
-                activityTabLoadedRef.current = true;
-                
-                // Only try refreshing achievements if we're viewing our own profile, there are no activities and we haven't loaded yet
-                if (isOwnProfile && userActivities.length === 0) {
-                    refreshAchievementActivities();
-                }
-            }
-        } else {
-            // Reset the ref when we switch away from the activity tab
-            activityTabLoadedRef.current = false;
+    }, [profileEmail]);
+
+    useEffect(() => {
+        if (user) {
+            fetchAchievements();
         }
-    }, [fetchUserProfile, activeTab, fetchUserActivities, fetchAchievements, userActivities.length, isOwnProfile]);
+    }, [user, fetchAchievements]);
+
+    useEffect(() => {
+        if (user && user.email) {
+            fetchUserRanks(user.email);
+        }
+    }, [user?.email, fetchUserRanks]);
     
     useEffect(() => {
         if (!selectedFile) {
@@ -1238,6 +1598,25 @@ const Profile = () => {
                 setIsEditingPhoto(false);
                 setSelectedFile(null);
                 setPreviewUrl(null);
+                
+                // Create profile update activity for deletion
+                try {
+                    await axios.post(
+                        `${API_URL}api/activity/achievement`,
+                        {
+                            achievementId: 'profilePictureDelete-' + Date.now(),
+                            achievementTitle: 'Deleted Profile Picture',
+                            achievementDescription: 'Profile picture removed.',
+                            achievementCategory: 'profile'
+                        },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    
+                    // Refresh activities feed
+                    await forceRefreshAllActivities();
+                } catch (activityError) {
+                    console.error('Error creating profile picture deletion activity:', activityError);
+                }
 
                 await Swal.fire({
                     title: '[ SUCCESS ]',
@@ -1731,7 +2110,7 @@ const Profile = () => {
         switch (filterType) {
             case 'achievement':
                 filtered = userActivities.filter(activity => 
-                    activity.activityType === 'achievement'
+                    activity.activityType === 'achievement' && activity.content.category !== 'profile'
                 );
                 break;
             case 'workout':
@@ -2553,14 +2932,17 @@ const Profile = () => {
                                                                                                 minute: '2-digit'
                                                                                             })}
                                                                                         </span>
-                                                                                        {currentUser && comment.userId === currentUser.userId && (
-                                                                                            <button 
-                                                                                                className="delete-comment-button"
-                                                                                                onClick={() => handleDeleteComment(activity._id, comment._id)}
-                                                                                                title="Delete comment"
-                                                                                            >
-                                                                                                <FaTrash />
-                                                                                            </button>
+                                                                                        {currentUser && (
+                                                                                            (comment.userId === currentUser.userId ||
+                                                                                             (comment.userId && comment.userId._id === currentUser.userId)) && (
+                                                                                                <button 
+                                                                                                    className="delete-comment-button"
+                                                                                                    onClick={() => handleDeleteComment(activity._id, comment._id)}
+                                                                                                    title="Delete comment"
+                                                                                                >
+                                                                                                    <FaTrash />
+                                                                                                </button>
+                                                                                            )
                                                                                         )}
                                                                                     </div>
                                                                                     <p className="comment-text">{comment.content}</p>
@@ -2604,6 +2986,185 @@ const Profile = () => {
                                 </div>
                             </ErrorBoundary>
                         )}
+                    </div>
+                );
+            case 'workout-tracking':
+                if (user?.isPrivate && !isOwnProfile) {
+                    return (
+                        <div className="private-content-message">
+                            <span className="lock-icon">🔒</span>
+                            <h3>Workout Tracking Not Available</h3>
+                            <p>This profile is set to private. Workout tracking is only visible to the profile owner.</p>
+                        </div>
+                    );
+                }
+                return (
+                    <div className="profile-workout-tracking-graph-container">
+                        {profileWorkoutData.loading ? (
+                            <div className="loading-activities"><div className="loading-spinner"></div>Loading workout data...</div>
+                        ) : (
+                            <>
+                                {/* DROPDOWN BAR - MATCH MyWorkout.js */}
+                                <div className="time-filter-container" ref={profileWorkoutTimeFilterRef}>
+                                    <div 
+                                        className="time-filter-dropdown"
+                                        onClick={() => setProfileWorkoutShowTimeFilter(v => !v)}
+                                    >
+                                        <span className="time-filter-label">{profileWorkoutTimePeriod === 'all' ? 'All Time' : profileWorkoutTimePeriod === 'monthly' ? (profileWorkoutSelectedMonth ? profileWorkoutSelectedMonth.name : 'Monthly') : profileWorkoutTimePeriod === 'weekly' ? (profileWorkoutSelectedWeek ? profileWorkoutSelectedWeek.name : 'Weekly') : 'All Time'}</span>
+                                        <FaChevronDown className="dropdown-icon" />
+                                    </div>
+                                    {profileWorkoutShowTimeFilter && (
+                                        <div className="time-filter-options">
+                                            <div
+                                                className={`time-option ${profileWorkoutTimePeriod === 'all' ? 'active' : ''}`}
+                                                onClick={() => { setProfileWorkoutTimePeriod('all'); setProfileWorkoutShowTimeFilter(false); }}
+                                            >
+                                                All Time
+                                            </div>
+                                            <div 
+                                                className={`time-option ${profileWorkoutTimePeriod === 'monthly' && !profileWorkoutSelectedMonth ? 'active' : ''}`}
+                                                onClick={() => { setProfileWorkoutTimePeriod('monthly'); setProfileWorkoutShowTimeFilter(false); if (profileWorkoutAvailableMonths.length > 0 && !profileWorkoutSelectedMonth) setProfileWorkoutSelectedMonth(profileWorkoutAvailableMonths[0]); }}
+                                            >
+                                                Monthly
+                                            </div>
+                                            {/* Show all available months */}
+                                            {profileWorkoutAvailableMonths.map((month, idx) => (
+                                                <div 
+                                                    key={`month-${idx}`}
+                                                    className={`time-option indent ${profileWorkoutSelectedMonth && profileWorkoutSelectedMonth.name === month.name ? 'active' : ''}`}
+                                                    onClick={() => { setProfileWorkoutSelectedMonth(month); setProfileWorkoutTimePeriod('monthly'); setProfileWorkoutShowTimeFilter(false); generateProfileWeeksForMonth(month, 'workout'); }}
+                                                >
+                                                    {month.name}
+                                                </div>
+                                            ))}
+                                            <div 
+                                                className={`time-option ${profileWorkoutTimePeriod === 'weekly' ? 'active' : ''}`}
+                                                onClick={() => { setProfileWorkoutTimePeriod('weekly'); setProfileWorkoutShowTimeFilter(false); if (profileWorkoutAvailableMonths.length > 0 && !profileWorkoutSelectedMonth) setProfileWorkoutSelectedMonth(profileWorkoutAvailableMonths[0]); generateProfileWeeksForMonth(profileWorkoutSelectedMonth || profileWorkoutAvailableMonths[0], 'workout'); }}
+                                            >
+                                                Weekly
+                                            </div>
+                                            {/* Show weeks for the selected month or when in weekly view */}
+                                            {profileWorkoutSelectedMonth && profileWorkoutAvailableWeeks.length > 0 && (
+                                                profileWorkoutAvailableWeeks.map((week, idx) => (
+                                                    <div 
+                                                        key={`week-${week.key}`}
+                                                        className={`time-option indent ${profileWorkoutSelectedWeek && profileWorkoutSelectedWeek.key === week.key ? 'active' : ''}`}
+                                                        onClick={() => { setProfileWorkoutSelectedWeek(week); setProfileWorkoutTimePeriod('weekly'); setProfileWorkoutShowTimeFilter(false); }}
+                                                    >
+                                                        {week.name}
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="profile-graph-charts">
+                                    <div className="chart-container workout-category-chart">
+                                        <h3 className="chart-title">Workouts By Category</h3>
+                                        <div className="chart-wrapper"><Bar data={getProfileWorkoutCategoryChartData()} options={profileWorkoutChartOptions} /></div>
+                                    </div>
+                                    <div className="chart-container workout-target-chart">
+                                        <h3 className="chart-title">Workouts By Target Muscle</h3>
+                                        <div className="chart-wrapper"><Bar data={getProfileWorkoutTargetChartData()} options={profileWorkoutChartOptions} /></div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                );
+            case 'weight-tracking':
+                if (user?.isPrivate && !isOwnProfile) {
+                    return (
+                        <div className="private-content-message">
+                            <span className="lock-icon">🔒</span>
+                            <h3>Weight Tracking Not Available</h3>
+                            <p>This profile is set to private. Weight tracking is only visible to the profile owner.</p>
+                        </div>
+                    );
+                }
+                return (
+                    <div className="profile-weight-tracking-graph-container">
+                        {profileWeightData.loading ? (
+                            <div className="loading-activities"><div className="loading-spinner"></div>Loading weight data...</div>
+                        ) : (
+                            <>
+                                {/* DROPDOWN BAR - MATCH WeightTracking.js */}
+                                <div className="weight-time-filter" ref={profileWeightTimeFilterRef}>
+                                    <div 
+                                        className="weight-time-filter-selector" 
+                                        onClick={() => setProfileWeightShowTimeFilter(v => !v)}
+                                    >
+                                        <span>{profileWeightTimePeriod === 'all' ? 'All Time' : profileWeightTimePeriod === 'monthly' ? (profileWeightSelectedMonth ? profileWeightSelectedMonth.name : 'Monthly') : profileWeightTimePeriod === 'weekly' ? (profileWeightSelectedWeek ? profileWeightSelectedWeek.name : 'Weekly') : 'All Time'}</span>
+                                        <FaChevronDown className="dropdown-icon" />
+                                    </div>
+                                    {profileWeightShowTimeFilter && (
+                                        <div className="weight-time-dropdown">
+                                            <div 
+                                                className={`time-option ${profileWeightTimePeriod === 'all' ? 'active' : ''}`}
+                                                onClick={() => { setProfileWeightTimePeriod('all'); setProfileWeightShowTimeFilter(false); }}
+                                            >
+                                                All Time
+                                            </div>
+                                            <div 
+                                                className={`time-option ${profileWeightTimePeriod === 'monthly' && !profileWeightSelectedMonth ? 'active' : ''}`}
+                                                onClick={() => { setProfileWeightTimePeriod('monthly'); setProfileWeightShowTimeFilter(false); if (profileWeightAvailableMonths.length > 0 && !profileWeightSelectedMonth) setProfileWeightSelectedMonth(profileWeightAvailableMonths[0]); }}
+                                            >
+                                                Monthly
+                                            </div>
+                                            {/* Show all available months */}
+                                            {profileWeightAvailableMonths.map((month, idx) => (
+                                                <div 
+                                                    key={`month-${idx}`}
+                                                    className={`time-option indent ${profileWeightSelectedMonth && profileWeightSelectedMonth.name === month.name ? 'active' : ''}`}
+                                                    onClick={() => { setProfileWeightSelectedMonth(month); setProfileWeightTimePeriod('monthly'); setProfileWeightShowTimeFilter(false); generateProfileWeeksForMonth(month, 'weight'); }}
+                                                >
+                                                    {month.name}
+                                                </div>
+                                            ))}
+                                            <div 
+                                                className={`time-option ${profileWeightTimePeriod === 'weekly' ? 'active' : ''}`}
+                                                onClick={() => { setProfileWeightTimePeriod('weekly'); setProfileWeightShowTimeFilter(false); if (profileWeightAvailableMonths.length > 0 && !profileWeightSelectedMonth) setProfileWeightSelectedMonth(profileWeightAvailableMonths[0]); generateProfileWeeksForMonth(profileWeightSelectedMonth || profileWeightAvailableMonths[0], 'weight'); }}
+                                            >
+                                                Weekly
+                                            </div>
+                                            {/* Show weeks for the selected month or when in weekly view */}
+                                            {profileWeightSelectedMonth && profileWeightAvailableWeeks.length > 0 && (
+                                                profileWeightAvailableWeeks.map((week, idx) => (
+                                                    <div 
+                                                        key={`week-${week.key}`}
+                                                        className={`time-option indent ${profileWeightSelectedWeek && profileWeightSelectedWeek.key === week.key ? 'active' : ''}`}
+                                                        onClick={() => { setProfileWeightSelectedWeek(week); setProfileWeightTimePeriod('weekly'); setProfileWeightShowTimeFilter(false); }}
+                                                    >
+                                                        {week.name}
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="profile-graph-charts">
+                                    <div className="chart-container weight-progress-chart">
+                                        <h3 className="chart-title">Weight Progress</h3>
+                                        <div className="chart-wrapper"><Line data={getProfileWeightChartData()} options={profileWeightChartOptions} /></div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                );
+            case 'friends':
+                if (user?.isPrivate && !isOwnProfile) {
+                    return (
+                        <div className="private-content-message">
+                            <span className="lock-icon">🔒</span>
+                            <h3>Friends Not Available</h3>
+                            <p>This profile is set to private. Friends are only visible to the profile owner.</p>
+                        </div>
+                    );
+                }
+                return (
+                    <div className="profile-friends-tab">
+                        <Friends showOnlyFriendsList profileEmail={profileEmail} />
                     </div>
                 );
             default:
@@ -2711,9 +3272,6 @@ const Profile = () => {
                             </div>
                         )}
                         <div className="profile-header">
-                            <h2 className="profile-picture-title">
-                                {isOwnProfile ? 'My Profile' : `${user?.firstName}'s Profile`}
-                            </h2>
                             <div className="profile-picture-container">
                                 {previewUrl ? (
                                     <img 
@@ -2817,21 +3375,86 @@ const Profile = () => {
                                 onClick={() => setActiveTab('achievements')}
                                 data-tab="achievements"
                                 aria-label={isOwnProfile ? 'My Achievements' : 'Achievements'}
+                                disabled={user?.isPrivate && !isOwnProfile}
+                                style={user?.isPrivate && !isOwnProfile ? { pointerEvents: 'none', opacity: 0.5, display: 'flex', alignItems: 'center' } : {}}
                             >
                                 <span className="tab-icon"><FaMedal /></span>
                                 <span className="tab-text">{isOwnProfile ? 'MY ACHIEVEMENTS' : 'ACHIEVEMENTS'}</span>
+                                {user?.isPrivate && !isOwnProfile && <span className="tab-lock" style={{marginLeft: 6}}>🔒</span>}
+                            </button>
+                            <button 
+                                className={`tab-button ${activeTab === 'workout-tracking' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('workout-tracking')}
+                                data-tab="workout-tracking"
+                                aria-label="Workout Tracking"
+                                disabled={user?.isPrivate && !isOwnProfile}
+                                style={user?.isPrivate && !isOwnProfile ? { pointerEvents: 'none', opacity: 0.5, display: 'flex', alignItems: 'center' } : {}}
+                            >
+                                <span className="tab-icon"><FaDumbbell /></span>
+                                <span className="tab-text">WORKOUT TRACKING</span>
+                                {user?.isPrivate && !isOwnProfile && <span className="tab-lock" style={{marginLeft: 6}}>🔒</span>}
+                            </button>
+                            <button 
+                                className={`tab-button ${activeTab === 'weight-tracking' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('weight-tracking')}
+                                data-tab="weight-tracking"
+                                aria-label="Weight Tracking"
+                                disabled={user?.isPrivate && !isOwnProfile}
+                                style={user?.isPrivate && !isOwnProfile ? { pointerEvents: 'none', opacity: 0.5, display: 'flex', alignItems: 'center' } : {}}
+                            >
+                                <span className="tab-icon"><FaWeight /></span>
+                                <span className="tab-text">WEIGHT TRACKING</span>
+                                {user?.isPrivate && !isOwnProfile && <span className="tab-lock" style={{marginLeft: 6}}>🔒</span>}
+                            </button>
+                            <button 
+                                className={`tab-button ${activeTab === 'friends' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('friends')}
+                                data-tab="friends"
+                                aria-label="Friends"
+                                disabled={user?.isPrivate && !isOwnProfile}
+                                style={user?.isPrivate && !isOwnProfile ? { pointerEvents: 'none', opacity: 0.5, display: 'flex', alignItems: 'center' } : {}}
+                            >
+                                <span className="tab-icon"><FaUserFriends /></span>
+                                <span className="tab-text">FRIENDS</span>
+                                {user?.isPrivate && !isOwnProfile && <span className="tab-lock" style={{marginLeft: 6}}>🔒</span>}
                             </button>
                             <button 
                                 className={`tab-button ${activeTab === 'activity' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('activity')}
                                 data-tab="activity"
                                 aria-label="Activity"
+                                disabled={user?.isPrivate && !isOwnProfile}
+                                style={user?.isPrivate && !isOwnProfile ? { pointerEvents: 'none', opacity: 0.5, display: 'flex', alignItems: 'center' } : {}}
                             >
                                 <span className="tab-icon"><FaChartLine /></span>
                                 <span className="tab-text">ACTIVITY</span>
+                                {user?.isPrivate && !isOwnProfile && <span className="tab-lock" style={{marginLeft: 6}}>🔒</span>}
                             </button>
                         </div>
-
+                        {/* Tab labels for mobile */}
+                        <div className="profile-tab-labels">
+                            {activeTab === 'profile' && (
+                                <div className="profile-tab-label active">{isOwnProfile ? 'My Profile' : 'Profile'}</div>
+                            )}
+                            {activeTab === 'rankings' && (
+                                <div className="profile-tab-label active">{isOwnProfile ? 'My Rankings' : 'Rankings'}</div>
+                            )}
+                            {activeTab === 'achievements' && (
+                                <div className="profile-tab-label active">{isOwnProfile ? 'My Achievements' : 'Achievements'}</div>
+                            )}
+                            {activeTab === 'workout-tracking' && (
+                                <div className="profile-tab-label active">Workout Tracking</div>
+                            )}
+                            {activeTab === 'weight-tracking' && (
+                                <div className="profile-tab-label active">Weight Tracking</div>
+                            )}
+                            {activeTab === 'friends' && (
+                                <div className="profile-tab-label active">Friends</div>
+                            )}
+                            {activeTab === 'activity' && (
+                                <div className="profile-tab-label active">Activity</div>
+                            )}
+                        </div>
                         {renderTabContent()}
                     </div>
                 )}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { FaUser } from 'react-icons/fa'; 
+import { FaUser, FaUserFriends } from 'react-icons/fa'; 
 import { useNavigate } from 'react-router-dom';
 import "../styles/Friends.css";
 import "../styles/AboutMe.css";
@@ -25,11 +25,30 @@ const NoProfilePicture = ({ name }) => (
 // Update the FriendCard component
 const FriendCard = ({ friend, onRemove }) => {
     const navigate = useNavigate();
+    const [mutualCount, setMutualCount] = useState(0);
     
     const goToProfile = (email) => {
-        navigate(`/profile/${email}`);
+        navigate(`/profile/${email}?tab=profile`);
     };
-    
+    const goToMutualFriends = (email) => {
+        navigate(`/mutual-friends/${email}`);
+    };
+
+    useEffect(() => {
+        const fetchMutualCount = async () => {
+            try {
+                const { data } = await axios.get(
+                    `${API_URL}api/friends/mutual-friends-count?email=${friend.email}`,
+                    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                );
+                setMutualCount(data.count);
+            } catch (err) {
+                console.error('Error fetching mutual friends count:', err);
+            }
+        };
+        fetchMutualCount();
+    }, [friend.email]);
+
     return (
         <div className="friend-card">
             <div className="friend-profile">
@@ -50,9 +69,6 @@ const FriendCard = ({ friend, onRemove }) => {
                             {friend.firstName} {friend.lastName}
                         </span>
                     </div>
-                    <div className="info-row request-style-info">
-                        <span className="info-value">{friend.email}</span>
-                    </div>
                 </div>
                 <div className="friend-buttons">
                     <button 
@@ -61,6 +77,13 @@ const FriendCard = ({ friend, onRemove }) => {
                     >
                         About Me
                     </button>
+                    <div 
+                        className="mutual-friends-link"
+                        onClick={() => goToMutualFriends(friend.email)}
+                    >
+                        <FaUserFriends className="mutual-friends-icon" />
+                        <span>{mutualCount} Mutual Friends</span>
+                    </div>
                     <button 
                         className="remove-friend-button" 
                         onClick={() => onRemove(friend.email)}
@@ -73,7 +96,238 @@ const FriendCard = ({ friend, onRemove }) => {
     );
 };
 
-const Friends = () => {
+const SearchResultCard = ({ searchResult, sendFriendRequest, cancelRequest, removeFriend }) => {
+    const navigate = useNavigate();
+    const [mutualCount, setMutualCount] = useState(0);
+
+    useEffect(() => {
+        const fetchMutualCount = async () => {
+            try {
+                const { data } = await axios.get(
+                    `${API_URL}api/friends/mutual-friends-count?email=${searchResult.email}`,
+                    { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                );
+                setMutualCount(data.count);
+            } catch (err) {
+                console.error('Error fetching mutual friends count:', err);
+            }
+        };
+        fetchMutualCount();
+    }, [searchResult.email]);
+
+    return (
+        <div className="search-result">
+            <div className="user-card">
+                {searchResult.profilePicture ? (
+                    <img
+                        src={searchResult.profilePicture} 
+                        alt="Profile"
+                        className="profile-picture"
+                    />
+                ) : (
+                    <NoProfilePicture name={`${searchResult.firstName} ${searchResult.lastName}`} />
+                )}
+                <div className="user-info">
+                    <h3>{searchResult.firstName} {searchResult.lastName}</h3>
+                    {!searchResult.isOwnProfile && (
+                        <>
+                            <button 
+                                className="about-me-button" 
+                                onClick={() => navigate(`/profile/${searchResult.email}`)}
+                            >
+                                About Me
+                            </button>
+                            <div 
+                                className="mutual-friends-link"
+                                onClick={() => navigate(`/mutual-friends/${searchResult.email}`)}
+                            >
+                                <FaUserFriends className="mutual-friends-icon" />
+                                <span>{mutualCount} Mutual Friends</span>
+                            </div>
+                            {searchResult.friendshipStatus === 'none' && (
+                                <button onClick={sendFriendRequest} className="add-friend-button">
+                                    Add Friend
+                                </button>
+                            )}
+                            {searchResult.friendshipStatus === 'pending-sent' && (
+                                <>
+                                    <span className="status-badge pending">Request Pending</span>
+                                    <button 
+                                        onClick={() => cancelRequest(searchResult.email)}
+                                        className="cancel-request-button"
+                                    >
+                                        Cancel Request
+                                    </button>
+                                </>
+                            )}
+                            {searchResult.friendshipStatus === 'pending-received' && (
+                                <div className="request-actions">
+                                    <button 
+                                        onClick={() => handleRequest(
+                                            friendRequests.find(r => r.sender?.email === searchResult.email)?._id,
+                                            'accept'
+                                        )}
+                                        className="accept-button"
+                                    >
+                                        Accept
+                                    </button>
+                                    <button 
+                                        onClick={() => handleRequest(
+                                            friendRequests.find(r => r.sender?.email === searchResult.email)?._id,
+                                            'reject'
+                                        )}
+                                        className="reject-button"
+                                    >
+                                        Reject
+                                    </button>
+                                </div>
+                            )}
+                            {searchResult.friendshipStatus === 'accepted' && (
+                                <>
+                                    <span className="status-badge friends">Already Friends</span>
+                                    <button 
+                                        onClick={() => removeFriend(searchResult.email)}
+                                        className="remove-friend-button"
+                                    >
+                                        Remove Friend
+                                    </button>
+                                </>
+                            )}
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const RequestCard = ({ request, handleRequest, navigate }) => {
+    const [mutualCount, setMutualCount] = useState(0);
+    const token = localStorage.getItem('token');
+
+    useEffect(() => {
+        const fetchMutualCount = async () => {
+            try {
+                const { data } = await axios.get(
+                    `${API_URL}api/friends/mutual-friends-count?email=${request.sender?.email}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                setMutualCount(data.count);
+            } catch (err) {
+                console.error('Error fetching mutual friends count:', err);
+            }
+        };
+        if (request.sender?.email) {
+            fetchMutualCount();
+        }
+    }, [request.sender?.email, token]);
+
+    return (
+        <div className="request-card">
+            {request.sender?.profilePicture ? (
+                <img
+                    src={request.sender.profilePicture} 
+                    alt="Profile"
+                    className="profile-picture"
+                />
+            ) : (
+                <NoProfilePicture name={`${request.sender?.firstName} ${request.sender?.lastName}`} />
+            )}
+            <div className="request-info">
+                <h3>{request.sender?.firstName} {request.sender?.lastName}</h3>
+                <button 
+                    className="about-me-button" 
+                    onClick={() => navigate(`/profile/${request.sender?.email}`)}
+                >
+                    About Me
+                </button>
+                <div 
+                    className="mutual-friends-link"
+                    onClick={() => navigate(`/mutual-friends/${request.sender?.email}`)}
+                >
+                    <FaUserFriends className="mutual-friends-icon" />
+                    <span>{mutualCount} Mutual Friends</span>
+                </div>
+                <div className="request-actions">
+                    <button
+                        onClick={() => handleRequest(request._id, 'accept')}
+                        className="accept-button"
+                    >
+                        Accept
+                    </button>
+                    <button
+                        onClick={() => handleRequest(request._id, 'reject')}
+                        className="reject-button"
+                    >
+                        Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SentRequestCard = ({ request, cancelRequest, navigate }) => {
+    const [mutualCount, setMutualCount] = useState(0);
+    const token = localStorage.getItem('token');
+
+    useEffect(() => {
+        const fetchMutualCount = async () => {
+            try {
+                const { data } = await axios.get(
+                    `${API_URL}api/friends/mutual-friends-count?email=${request.receiver?.email}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                setMutualCount(data.count);
+            } catch (err) {
+                console.error('Error fetching mutual friends count:', err);
+            }
+        };
+        if (request.receiver?.email) {
+            fetchMutualCount();
+        }
+    }, [request.receiver?.email, token]);
+
+    return (
+        <div className="request-card">
+            {request.receiver?.profilePicture ? (
+                <img
+                    src={request.receiver.profilePicture} 
+                    alt="Profile"
+                    className="profile-picture"
+                />
+            ) : (
+                <NoProfilePicture name={`${request.receiver?.firstName} ${request.receiver?.lastName}`} />
+            )}
+            <div className="request-info">
+                <h3>{request.receiver?.firstName} {request.receiver?.lastName}</h3>
+                <button 
+                    className="about-me-button" 
+                    onClick={() => navigate(`/profile/${request.receiver?.email}`)}
+                >
+                    About Me
+                </button>
+                <div 
+                    className="mutual-friends-link"
+                    onClick={() => navigate(`/mutual-friends/${request.receiver?.email}`)}
+                >
+                    <FaUserFriends className="mutual-friends-icon" />
+                    <span>{mutualCount} Mutual Friends</span>
+                </div>
+                <div className="request-actions">
+                    <button
+                        onClick={() => cancelRequest(request.receiver?.email)}
+                        className="cancel-request-button"
+                    >
+                        Cancel Request
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const Friends = ({ showOnlyFriendsList, profileEmail }) => {
     const navigate = useNavigate();
     const [searchEmail, setSearchEmail] = useState("");
     const [searchResult, setSearchResult] = useState(null);
@@ -96,42 +350,40 @@ const Friends = () => {
             navigate('/signin');
             return;
         }
-
         // Add token expiration check
         const checkTokenExpiration = async () => {
             try {
-                const response = await axios.get(`${API_URL}/api/friends/list`, {
+                await axios.get(`${API_URL}/api/friends/list`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } catch (error) {
                 if (error.response && error.response.status === 401) {
-                    localStorage.removeItem('token'); // Clear the expired token
+                    localStorage.removeItem('token');
                     navigate('/signin');
                 }
             }
         };
-
         checkTokenExpiration();
     }, [navigate]);
 
     useEffect(() => {
-        // Check if user is authenticated
         if (!token) {
             navigate('/signin');
             return;
         }
     }, [token, navigate]);
 
-    // If not authenticated, don't render the component
     if (!token) {
         return null;
     }
 
     useEffect(() => {
         fetchFriends();
-        fetchFriendRequests();
-        fetchSentRequests();
-    }, []);
+        if (!profileEmail && !showOnlyFriendsList) {
+            fetchFriendRequests();
+            fetchSentRequests();
+        }
+    }, [profileEmail]);
 
     useEffect(() => {
         getUserEmail();
@@ -155,10 +407,16 @@ const Friends = () => {
         }
     };
 
-    // Modify fetchFriends function
+    // Modify fetchFriends function to use profileEmail if provided
     const fetchFriends = async () => {
         try {
-            const { data } = await axios.get(`${API_URL}api/friends/list`, config);
+            let url;
+            if (profileEmail) {
+                url = `${API_URL}api/friends/list?email=${profileEmail}`;
+            } else {
+                url = `${API_URL}api/friends/list`;
+            }
+            const { data } = await axios.get(url, config);
             setFriends(data);
         } catch (error) {
             console.error('Failed to fetch friends:', error);
@@ -174,6 +432,147 @@ const Friends = () => {
         }
     };
 
+    // Filter friends based on search query
+    const filteredFriends = friends.filter(friend => {
+        const searchLower = searchQuery.toLowerCase();
+        const fullName = `${friend.firstName} ${friend.lastName}`.toLowerCase();
+        return friend.email.toLowerCase().includes(searchLower) ||
+               fullName.includes(searchLower) ||
+               friend.firstName.toLowerCase().includes(searchLower) ||
+               friend.lastName.toLowerCase().includes(searchLower);
+    });
+
+    // Clear search handler
+    const handleClearSearch = () => {
+        setSearchQuery('');
+    };
+
+    // Move removeFriend above all usages
+    const removeFriend = async (friendEmail) => {
+        try {
+            const result = await Swal.fire({
+                title: '[ REMOVE FRIEND ]',
+                text: 'Are you sure you want to remove this friend?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: '< REMOVE >',
+                cancelButtonText: '< CANCEL >',
+                background: 'rgba(16, 16, 28, 0.95)',
+                confirmButtonColor: '#ff4444',
+                cancelButtonColor: '#00ff84',
+                backdrop: `
+                    rgba(0,0,0,0.8)
+                    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f00' fill-opacity='0.1'%3E%3Cpath d='M20 40h10v20H20zM15 45h20v10H15zM10 48h30v4H10z'/%3E%3Cpath d='M60 45h30v10H60zM65 40h5v20h-5zM80 40h5v20h-5zM20 5c0 8.284-6.716 15-15 15v5c11.046 0 20-8.954 20-20h-5z'/%3E%3C/g%3E%3C/svg%3E")`
+            });
+
+            if (result.isConfirmed) {
+                const token = localStorage.getItem('token');
+                await axios.post(
+                    `${API_URL}api/friends/remove`,
+                    { friendEmail },
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                setFriends(prevFriends => prevFriends.filter(friend => friend.email !== friendEmail));
+                setSearchResult(null);
+                setSearchEmail("");
+
+                await Swal.fire({
+                    title: '[ SUCCESS ]',
+                    text: 'Friend removed successfully!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    background: 'rgba(16, 16, 28, 0.95)'
+                });
+
+                await fetchFriends();
+            }
+        } catch (error) {
+            console.error('Error removing friend:', error);
+            await Swal.fire({
+                title: '[ ERROR ]',
+                text: 'Failed to remove friend',
+                icon: 'error',
+                background: 'rgba(16, 16, 28, 0.95)'
+            });
+        }
+    };
+
+    // If viewing another user's profile, only show their friends, no search or requests UI
+    if (profileEmail) {
+        return (
+            <div className="friends-list-section" style={{ boxShadow: 'none', border: 'none', background: 'transparent' }}>
+                <h2 style={{ textAlign: 'center', marginBottom: 20 }}>Friends ({filteredFriends.length})</h2>
+                <div className="friends-search-container">
+                    <input
+                        type="text"
+                        placeholder="Search by name or email"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="friends-search-input"
+                    />
+                    {searchQuery && (
+                        <button onClick={handleClearSearch} className="clear-search-button">Clear</button>
+                    )}
+                </div>
+                {friends.length === 0 ? (
+                    <p>No friends yet</p>
+                ) : (
+                    <div className="friends-grid">
+                        {filteredFriends.map(friend => (
+                            <FriendCard 
+                                key={friend._id} 
+                                friend={friend}
+                                onRemove={removeFriend}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Only render My Friends section if showOnlyFriendsList is true (for current user)
+    if (showOnlyFriendsList) {
+        return (
+            <div className="friends-list-section" style={{ boxShadow: 'none', border: 'none', background: 'transparent' }}>
+                <h2 style={{ textAlign: 'center', marginBottom: 20 }}>Friends ({filteredFriends.length})</h2>
+                <div className="friends-search-container">
+                    <input
+                        type="text"
+                        placeholder="Search by name or email"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="friends-search-input"
+                    />
+                    {searchQuery && (
+                        <button onClick={handleClearSearch} className="clear-search-button">Clear</button>
+                    )}
+                </div>
+                {friends.length === 0 ? (
+                    <p>No friends yet</p>
+                ) : (
+                    <div className="friends-grid">
+                        {filteredFriends.map(friend => (
+                            <FriendCard 
+                                key={friend._id} 
+                                friend={friend}
+                                onRemove={removeFriend}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Default: full friend management UI for current user
     const searchUser = async () => {
         if (!searchEmail) return;
         setLoading(true);
@@ -387,10 +786,9 @@ const Friends = () => {
                 showCancelButton: true,
                 confirmButtonText: '< CANCEL REQUEST >',
                 cancelButtonText: '< KEEP REQUEST >',
+                reverseButtons: true,
                 customClass: {
-                    popup: 'cancel-request-dialog',
-                    confirmButton: 'cancel-confirm-button',
-                    cancelButton: 'cancel-keep-button'
+                    popup: 'cancel-request-dialog'
                 },
                 background: 'rgba(16, 16, 28, 0.95)',
                 backdrop: `
@@ -439,96 +837,6 @@ const Friends = () => {
         }
     };
 
-    // Update the button colors in the SweetAlert configuration
-    const removeFriend = async (friendEmail) => {
-        try {
-            const result = await Swal.fire({
-                title: '[ REMOVE FRIEND ]',
-                text: 'Are you sure you want to remove this friend?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: '< REMOVE >',
-                cancelButtonText: '< CANCEL >',
-                background: 'rgba(16, 16, 28, 0.95)',
-                confirmButtonColor: '#ff4444', // Red for remove
-                cancelButtonColor: '#00ff84', // Green for cancel
-                backdrop: `
-                    rgba(0,0,0,0.8)
-                    url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f00' fill-opacity='0.1'%3E%3Cpath d='M20 40h10v20H20zM15 45h20v10H15zM10 48h30v4H10z'/%3E%3Cpath d='M60 45h30v10H60zM65 40h5v20h-5zM80 40h5v20h-5zM20 5c0 8.284-6.716 15-15 15v5c11.046 0 20-8.954 20-20h-5z'/%3E%3C/g%3E%3C/svg%3E")
-                `
-            });
-
-            if (result.isConfirmed) {
-                const token = localStorage.getItem('token');
-                await axios.post(
-                    `${API_URL}api/friends/remove`,
-                    { friendEmail },
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    }
-                );
-
-                // Update local state
-                setFriends(prevFriends => prevFriends.filter(friend => friend.email !== friendEmail));
-                
-                // Clear search result after removal
-                setSearchResult(null);
-                setSearchEmail("");
-
-                await Swal.fire({
-                    title: '[ SUCCESS ]',
-                    text: 'Friend removed successfully!',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    background: 'rgba(16, 16, 28, 0.95)'
-                });
-
-                // Refetch the friends list
-                await fetchFriends();
-            }
-        } catch (error) {
-            console.error('Error removing friend:', error);
-            await Swal.fire({
-                title: '[ ERROR ]',
-                text: 'Failed to remove friend',
-                icon: 'error',
-                background: 'rgba(16, 16, 28, 0.95)'
-            });
-        }
-    };
-
-    useEffect(() => {
-        const fetchFriends = async () => {
-            try {
-                const { data } = await axios.get(`${API_URL}api/friends/list`, config);
-                setFriends(data);
-            } catch (error) {
-                console.error('Failed to fetch friends:', error);
-            }
-        };
-
-        fetchFriends();
-    }, []);
-
-    // Filter friends based on search query
-    const filteredFriends = friends.filter(friend => {
-        const searchLower = searchQuery.toLowerCase();
-        const fullName = `${friend.firstName} ${friend.lastName}`.toLowerCase();
-        return friend.email.toLowerCase().includes(searchLower) ||
-               fullName.includes(searchLower) ||
-               friend.firstName.toLowerCase().includes(searchLower) ||
-               friend.lastName.toLowerCase().includes(searchLower);
-    });
-
-    // Clear search handler
-    const handleClearSearch = () => {
-        setSearchQuery('');
-    };
-
     return (
         <div className="friends-page">
             <div className="friends-container">
@@ -551,87 +859,12 @@ const Friends = () => {
                     {error && <div className="error">{error}</div>}
 
                     {searchResult && (
-                        <div className="search-result">
-                            <div className="user-card">
-                                {searchResult.profilePicture ? (
-                                    <img
-                                        src={searchResult.profilePicture} 
-                                        alt="Profile"
-                                        className="profile-picture"
-                                    />
-                                ) : (
-                                    <NoProfilePicture name={`${searchResult.firstName} ${searchResult.lastName}`} />
-                                )}
-                                <div className="user-info">
-                                    <h3>{searchResult.firstName} {searchResult.lastName}</h3>
-                                    <p>{searchResult.email}</p>
-                                    
-                                    {!searchResult.isOwnProfile && (
-                                        <>
-                                            <button 
-                                                className="about-me-button" 
-                                                onClick={() => navigate(`/profile/${searchResult.email}`)}
-                                            >
-                                                About Me
-                                            </button>
-                                            
-                                            {searchResult.friendshipStatus === 'none' && (
-                                                <button onClick={sendFriendRequest} className="add-friend-button">
-                                                    Add Friend
-                                                </button>
-                                            )}
-                                            
-                                            {searchResult.friendshipStatus === 'pending-sent' && (
-                                                <>
-                                                    <span className="status-badge pending">Request Pending</span>
-                                                    <button 
-                                                        onClick={() => cancelRequest(searchResult.email)}
-                                                        className="cancel-request-button"
-                                                    >
-                                                        Cancel Request
-                                                    </button>
-                                                </>
-                                            )}
-                                            
-                                            {searchResult.friendshipStatus === 'pending-received' && (
-                                                <div className="request-actions">
-                                                    <button 
-                                                        onClick={() => handleRequest(
-                                                            friendRequests.find(r => r.sender?.email === searchResult.email)?._id,
-                                                            'accept'
-                                                        )}
-                                                        className="accept-button"
-                                                    >
-                                                        Accept
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => handleRequest(
-                                                            friendRequests.find(r => r.sender?.email === searchResult.email)?._id,
-                                                            'reject'
-                                                        )}
-                                                        className="reject-button"
-                                                    >
-                                                        Reject
-                                                    </button>
-                                                </div>
-                                            )}
-                                            
-                                            {searchResult.friendshipStatus === 'accepted' && (
-                                                <>
-                                                    <span className="status-badge friends">Already Friends</span>
-                                                    <button 
-                                                        onClick={() => removeFriend(searchResult.email)}
-                                                        className="remove-friend-button"
-                                                    >
-                                                        Remove Friend
-                                                    </button>
-                                                </>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                        <SearchResultCard 
+                            searchResult={searchResult}
+                            sendFriendRequest={sendFriendRequest}
+                            cancelRequest={cancelRequest}
+                            removeFriend={removeFriend}
+                        />
                     )}
                 </div>
 
@@ -643,41 +876,12 @@ const Friends = () => {
                                 <p>No pending friend requests</p>
                             ) : (
                                 friendRequests.map(request => (
-                                    <div key={request._id} className="request-card">
-                                        {request.sender?.profilePicture ? (
-                                            <img
-                                                src={request.sender.profilePicture} 
-                                                alt="Profile"
-                                                className="profile-picture"
-                                            />
-                                        ) : (
-                                            <NoProfilePicture name={`${request.sender?.firstName} ${request.sender?.lastName}`} />
-                                        )}
-                                        <div className="request-info">
-                                            <h3>{request.sender?.firstName} {request.sender?.lastName}</h3>
-                                            <p>{request.sender?.email}</p>
-                                            <button 
-                                                className="about-me-button" 
-                                                onClick={() => navigate(`/profile/${request.sender?.email}`)}
-                                            >
-                                                About Me
-                                            </button>
-                                            <div className="request-actions">
-                                                <button
-                                                    onClick={() => handleRequest(request._id, 'accept')}
-                                                    className="accept-button"
-                                                >
-                                                    Accept
-                                                </button>
-                                                <button
-                                                    onClick={() => handleRequest(request._id, 'reject')}
-                                                    className="reject-button"
-                                                >
-                                                    Reject
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <RequestCard 
+                                        key={request._id} 
+                                        request={request}
+                                        handleRequest={handleRequest}
+                                        navigate={navigate}
+                                    />
                                 ))
                             )}
                         </div>
@@ -690,35 +894,12 @@ const Friends = () => {
                                 <p>No sent friend requests</p>
                             ) : (
                                 sentRequests.map(request => (
-                                    <div key={request._id} className="request-card">
-                                        {request.receiver?.profilePicture ? (
-                                            <img
-                                                src={request.receiver.profilePicture} 
-                                                alt="Profile"
-                                                className="profile-picture"
-                                            />
-                                        ) : (
-                                            <NoProfilePicture name={`${request.receiver?.firstName} ${request.receiver?.lastName}`} />
-                                        )}
-                                        <div className="request-info">
-                                            <h3>{request.receiver?.firstName} {request.receiver?.lastName}</h3>
-                                            <p>{request.receiver?.email}</p>
-                                            <button 
-                                                className="about-me-button" 
-                                                onClick={() => navigate(`/profile/${request.receiver?.email}`)}
-                                            >
-                                                About Me
-                                            </button>
-                                            <div className="request-actions">
-                                                <button
-                                                    onClick={() => cancelRequest(request.receiver?.email)}
-                                                    className="cancel-request-button"
-                                                >
-                                                    Cancel Request
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <SentRequestCard 
+                                        key={request._id} 
+                                        request={request}
+                                        cancelRequest={cancelRequest}
+                                        navigate={navigate}
+                                    />
                                 ))
                             )}
                         </div>
@@ -726,8 +907,7 @@ const Friends = () => {
                 </div>
 
                 <div className="friends-list-section">
-                    <h2>My Friends</h2>
-                    
+                    <h2>Friends ({filteredFriends.length})</h2>
                     {/* Add search container */}
                     <div className="friends-search-container">
                         <input
@@ -755,7 +935,7 @@ const Friends = () => {
                                 <FriendCard 
                                     key={friend._id} 
                                     friend={friend}
-                                    onRemove={removeFriend}  // Pass removeFriend directly instead of handleRemoveFriend
+                                    onRemove={removeFriend}
                                 />
                             ))}
                         </div>

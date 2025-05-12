@@ -17,6 +17,8 @@ import DumbbellTraining from './pages/DumbbellTraining';
 import MachineExercises from './pages/MachineExercises';
 import BarbellTraining from './pages/BarbellTraining';
 import BodyweightFitness from './pages/BodyweightFitness';
+import ResetPassword from './pages/ResetPassword';
+import MutualFriends from './pages/MutualFriends';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
@@ -31,6 +33,7 @@ function App() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signout" element={<SignOut />} />  {}
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/workouts" element={<Workouts />} />
         <Route path="/my-workout" element={<MyWorkout />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
@@ -45,6 +48,7 @@ function App() {
         <Route path="/machine-exercises" element={<MachineExercises />} />
         <Route path="/barbell-training" element={<BarbellTraining />} />
         <Route path="/bodyweight-fitness" element={<BodyweightFitness />} />
+        <Route path="/mutual-friends/:email" element={<MutualFriends />} />
       </Routes>
       <Footer />
     </Router>

@@ -3,12 +3,107 @@ import { useNavigate } from 'react-router-dom';
 import { BARBELL_EXERCISES } from './barbellConstants';
 import '../styles/BarbellTraining.css';
 
+// Import chest exercise images
+import benchPressImg from '../execises/barbell exercises/chest/Barbell Bench Press.png';
+import inclinePressImg from '../execises/barbell exercises/chest/Incline Barbell Press.png';
+import declinePressImg from '../execises/barbell exercises/chest/Decline Barbell Press.png';
+import floorPressImg from '../execises/barbell exercises/chest/Barbell Floor Press.png';
+import guillotinePressImg from '../execises/barbell exercises/chest/Barbell Guillotine Press.png';
+
+// Import shoulder exercise images
+import barbellOverheadPressImg from '../execises/barbell exercises/shoulders/Barbell Overhead Press.png';
+import behindTheNeckPressImg from '../execises/barbell exercises/shoulders/Behind-the-Neck Press.png';
+import pushPressImg from '../execises/barbell exercises/shoulders/Push Press.png';
+import zPressImg from '../execises/barbell exercises/shoulders/Z Press.png';
+import uprightRowsImg from '../execises/barbell exercises/shoulders/Upright Rows.png';
+import barbellShrugsImg from '../execises/barbell exercises/shoulders/Barbell Shrugs.png';
+
+// Import bicep exercise images
+import barbellBicepCurlImg from '../execises/barbell exercises/bicep/Barbell Bicep Curl.png';
+import reverseCurlImg from '../execises/barbell exercises/bicep/Reverse Curl.png';
+import dragCurlImg from '../execises/barbell exercises/bicep/Drag Curl.png';
+import preacherCurlImg from '../execises/barbell exercises/bicep/Preacher Curl.png';
+
+// Import tricep exercise images
+import skullCrushersImg from '../execises/barbell exercises/tricep/Barbell Skull Crushers.png';
+import closeGripBenchImg from '../execises/barbell exercises/tricep/Close-Grip Bench Press.jpg';
+import overheadExtensionImg from '../execises/barbell exercises/tricep/Overhead Barbell Triceps Extension.png';
+
+// Import forearm exercise images
+import wristCurlsImg from '../execises/barbell exercises/forearms/Barbell Wrist Curls.png';
+import reverseWristCurlsImg from '../execises/barbell exercises/forearms/Reverse Wrist Curls.png';
+import wristRollerImg from '../execises/barbell exercises/forearms/Wrist Roller.png';
+
+// Import core exercise images
+import russianTwistsImg from '../execises/barbell exercises/core/Barbell Russian Twists.png';
+import rolloutImg from '../execises/barbell exercises/core/Barbell Rollouts.png';
+import sideBendsImg from '../execises/barbell exercises/core/Barbell Side Bends.png';
+
+// Import leg exercise images
+import backSquatImg from '../execises/barbell exercises/legs/Barbell Back Squat.png';
+import frontSquatImg from '../execises/barbell exercises/legs/Barbell Front Squat.png';
+import lungesImg from '../execises/barbell exercises/legs/Barbell Lunges.png';
+import stepUpsImg from '../execises/barbell exercises/legs/Barbell Step-Ups.png';
+import romanianDeadliftsImg from '../execises/barbell exercises/legs/Romanian Deadlifts.png';
+import sumoDeadliftsImg from '../execises/barbell exercises/legs/Sumo Deadlifts.png';
+import hipThrustsImg from '../execises/barbell exercises/legs/Barbell Hip Thrusts.png';
+import calfRaisesImg from '../execises/barbell exercises/legs/Calf Raises.png';
+
 function BarbellTraining() {
   const navigate = useNavigate();
   const [selectedTarget, setSelectedTarget] = useState("Chest");
 
   const handleTargetClick = (target) => {
     setSelectedTarget(target);
+  };
+
+  // Create an image mapping for chest exercises
+  const exerciseImages = {
+    // Chest exercises
+    "Barbell Bench Press": benchPressImg,
+    "Incline Barbell Press": inclinePressImg,
+    "Decline Barbell Press": declinePressImg,
+    "Barbell Floor Press": floorPressImg,
+    "Barbell Guillotine Press": guillotinePressImg,
+    
+    // Shoulder exercises
+    "Barbell Overhead Press": barbellOverheadPressImg,
+    "Behind-the-Neck Press": behindTheNeckPressImg,
+    "Push Press": pushPressImg,
+    "Z Press": zPressImg,
+    "Upright Rows": uprightRowsImg,
+    "Barbell Shrugs": barbellShrugsImg,
+    
+    // Bicep exercises
+    "Barbell Bicep Curl": barbellBicepCurlImg,
+    "Reverse Curl": reverseCurlImg,
+    "Drag Curl": dragCurlImg,
+    "Preacher Curl": preacherCurlImg,
+    
+    // Tricep exercises
+    "Barbell Skull Crushers": skullCrushersImg,
+    "Close-Grip Bench Press": closeGripBenchImg,
+    "Overhead Barbell Triceps Extension": overheadExtensionImg,
+    
+    // Forearm exercises
+    "Barbell Wrist Curls": wristCurlsImg,
+    "Reverse Wrist Curls": reverseWristCurlsImg,
+    "Wrist Roller": wristRollerImg,
+    
+    // Core exercises
+    "Barbell Russian Twists": russianTwistsImg,
+    "Barbell Rollouts": rolloutImg,
+    "Barbell Side Bends": sideBendsImg,
+    
+    // Leg exercises
+    "Barbell Back Squat": backSquatImg,
+    "Barbell Front Squat": frontSquatImg,
+    "Barbell Lunges": lungesImg,
+    "Barbell Step-Ups": stepUpsImg,
+    "Romanian Deadlifts": romanianDeadliftsImg,
+    "Sumo Deadlifts": sumoDeadliftsImg,
+    "Barbell Hip Thrusts": hipThrustsImg,
+    "Calf Raises": calfRaisesImg
   };
 
   const targetDescriptions = {
@@ -69,10 +164,58 @@ function BarbellTraining() {
     "Calf Raises": "Isolates and builds calf muscles by raising your heels while holding a barbell across your upper back. This exercise can be performed on flat ground or with the balls of your feet on an elevated surface to increase range of motion. The standing barbell version allows for significant loading while also engaging the core and back as stabilizers, making it excellent for building functional calf strength and size."
   };
 
+  const renderContent = () => {
+    const exercises = BARBELL_EXERCISES[selectedTarget];
+
+    return (
+      <>
+        <div className="barbell-target-header">
+          <h3>{selectedTarget}</h3>
+          <p>{targetDescriptions[selectedTarget]}</p>
+        </div>
+
+        <div className="barbell-exercises-container">
+          {exercises.map((exercise, index) => {
+            // Check if the exercise has an image
+            if (exerciseImages[exercise]) {
+              return (
+                <div key={exercise} className="exercise-row">
+                  {/* Always show text on left, image on right */}
+                  <div className="exercise-text-box">
+                    <h3 className="exercise-name">{exercise}</h3>
+                    <p>{exerciseDescriptions[exercise]}</p>
+                  </div>
+                  <div className="exercise-image-box">
+                    <img 
+                      src={exerciseImages[exercise]} 
+                      alt={exercise} 
+                      className="exercise-image"
+                    />
+                  </div>
+                </div>
+              );
+            } else {
+              // For exercises without images
+              return (
+                <div 
+                  key={exercise} 
+                  className="barbell-exercise-card left"
+                >
+                  <h3>{exercise}</h3>
+                  <p>{exerciseDescriptions[exercise] || "Build strength and power with this fundamental barbell exercise."}</p>
+                </div>
+              );
+            }
+          })}
+        </div>
+      </>
+    );
+  };
+
   return (
     <div className="barbell-training-page">
       <div className="barbell-header">
-        <h2>Barbell Training</h2>
+        <h1>BARBELL EXERCISES</h1>
         <p>Fundamental strength exercises for maximum muscle and power development</p>
       </div>
 
@@ -91,22 +234,7 @@ function BarbellTraining() {
       </div>
 
       <div className="barbell-content-container">
-        <div className="barbell-target-header">
-          <h3>{selectedTarget}</h3>
-          <p>{targetDescriptions[selectedTarget]}</p>
-        </div>
-
-        <div className="barbell-exercises-grid">
-          {BARBELL_EXERCISES[selectedTarget].map((exercise, index) => (
-            <div 
-              key={exercise} 
-              className={`barbell-exercise-card ${index % 2 === 0 ? 'left' : 'right'}`}
-            >
-              <h3>{exercise}</h3>
-              <p>{exerciseDescriptions[exercise] || "Build strength and power with this fundamental barbell exercise."}</p>
-            </div>
-          ))}
-        </div>
+        {renderContent()}
       </div>
     </div>
   );

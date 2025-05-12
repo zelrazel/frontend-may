@@ -1,0 +1,35 @@
+.footer {
+    background: linear-gradient(135deg, #0a1f0a 0%, #1a2f1a 100%);
+    color: #fff;
+    padding: 10px 0;
+    width: 100%;
+    margin-top: 0;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.location {
+    color: #00ff84;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.contact {
+    color: #00ff84;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.beta-tag {
+    color: rgba(0, 255, 132, 0.7);
+    font-size: 13px;
+    margin-top: 0;
+}

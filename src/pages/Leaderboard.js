@@ -236,10 +236,16 @@ const renderLeaderboardContent = () => {
                         {renderProfilePicture(user)}
                         <div className="rank">{index + 1}</div>
                         <div className="name">{user.firstName} {user.lastName}</div>
-                        <div className="email">
+                        <div className="leaderboard-email">
                             <FaEnvelope className="email-icon" />
                             {user.email}
                         </div>
+                        <button
+                            className="about-me-button"
+                            onClick={() => window.location.href = `/profile/${user.email}`}
+                        >
+                            About Me
+                        </button>
                         {renderRankInfo(user, activeCategory)}
                     </div>
                 ))}
@@ -251,10 +257,16 @@ const renderLeaderboardContent = () => {
                         {renderProfilePicture(user)}
                         <div className="rank-info">
                             <div className="rank-name">{user.firstName} {user.lastName}</div>
-                            <div className="rank-email">
+                            <div className="leaderboard-email">
                                 <FaEnvelope className="email-icon" />
                                 {user.email}
                             </div>
+                            <button
+                                className="about-me-button"
+                                onClick={() => window.location.href = `/profile/${user.email}`}
+                            >
+                                About Me
+                            </button>
                         </div>
                         {renderRankInfo(user, activeCategory)}
                     </div>

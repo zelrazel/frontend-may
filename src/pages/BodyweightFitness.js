@@ -3,12 +3,97 @@ import { useNavigate } from 'react-router-dom';
 import { BODYWEIGHT_EXERCISES } from './bodyWeightConstants';
 import '../styles/BodyweightFitness.css';
 
+// Import chest exercise images
+import pushUpsImg from '../execises/body weight exercises/chest/Push-Ups.png';
+import diamondPushUpsImg from '../execises/body weight exercises/chest/Diamond Push-Ups.png';
+import archerPushUpsImg from '../execises/body weight exercises/chest/Archer Push-Ups.png';
+import declinePushUpsImg from '../execises/body weight exercises/chest/Decline Push-Ups.png';
+
+// Import shoulder exercise images
+import pikePushUpsImg from '../execises/body weight exercises/shoulders/Pike Push-Ups.png';
+import handstandPushUpsImg from '../execises/body weight exercises/shoulders/Handstand Push-Ups.png';
+import wallWalksImg from '../execises/body weight exercises/shoulders/Wall Walks.png';
+
+// Import bicep exercise images
+import chinUpsImg from '../execises/body weight exercises/biceps/Chin-Ups.png';
+import closeGripPullUpsImg from '../execises/body weight exercises/biceps/Close-Grip Pull-Ups.png';
+
+// Import tricep exercise images
+import dipsImg from '../execises/body weight exercises/triceps/Dips (on Bars).png';
+import benchDipsImg from '../execises/body weight exercises/triceps/Bench Dips.png';
+import tricepsExtensionsImg from '../execises/body weight exercises/triceps/Triceps Extensions (Bodyweight).png';
+
+// Import forearm exercise images
+import deadHangImg from '../execises/body weight exercises/forearms/Dead Hang.png';
+import fingerTipPushUpsImg from '../execises/body weight exercises/forearms/Finger Tip Push-Ups.png';
+import wristCurlsImg from '../execises/body weight exercises/forearms/Wrist Curls (using a surface).webp';
+
+// Import core exercise images
+import hangingLegRaisesImg from '../execises/body weight exercises/core/Hanging Leg Raises.png';
+import plankImg from '../execises/body weight exercises/core/Plank.png';
+import sidePlankImg from '../execises/body weight exercises/core/Side Plank.png';
+import vUpsImg from '../execises/body weight exercises/core/V-Ups.png';
+import bicycleCrunchesImg from '../execises/body weight exercises/core/Bicycle Crunches.png';
+
+// Import leg exercise images
+import bodyweightSquatsImg from '../execises/body weight exercises/legs/Bodyweight Squats.png';
+import bulgarianSplitSquatsImg from '../execises/body weight exercises/legs/Bulgarian Split Squats.png';
+import jumpSquatsImg from '../execises/body weight exercises/legs/Jump Squats.png';
+import pistolSquatsImg from '../execises/body weight exercises/legs/Pistol Squats.png';
+import stepUpsImg from '../execises/body weight exercises/legs/Step-Ups.png';
+import wallSitImg from '../execises/body weight exercises/legs/Wall Sit.png';
+import calfRaisesImg from '../execises/body weight exercises/legs/Calf Raises.png';
+
 function BodyweightFitness() {
   const navigate = useNavigate();
   const [selectedTarget, setSelectedTarget] = useState("Chest");
 
   const handleTargetClick = (target) => {
     setSelectedTarget(target);
+  };
+
+  // Create an image mapping
+  const exerciseImages = {
+    // Chest exercises
+    "Push-Ups": pushUpsImg,
+    "Diamond Push-Ups": diamondPushUpsImg,
+    "Archer Push-Ups": archerPushUpsImg,
+    "Decline Push-Ups": declinePushUpsImg,
+    
+    // Shoulder exercises
+    "Pike Push-Ups": pikePushUpsImg,
+    "Handstand Push-Ups": handstandPushUpsImg,
+    "Wall Walks": wallWalksImg,
+    
+    // Bicep exercises
+    "Chin-Ups": chinUpsImg,
+    "Close-Grip Pull-Ups": closeGripPullUpsImg,
+    
+    // Tricep exercises
+    "Dips (on Bars)": dipsImg,
+    "Bench Dips": benchDipsImg,
+    "Triceps Extensions (Bodyweight)": tricepsExtensionsImg,
+    
+    // Forearm exercises
+    "Dead Hang": deadHangImg,
+    "Finger Tip Push-Ups": fingerTipPushUpsImg,
+    "Wrist Curls (using a surface)": wristCurlsImg,
+    
+    // Core exercises
+    "Hanging Leg Raises": hangingLegRaisesImg,
+    "Plank": plankImg,
+    "Side Plank": sidePlankImg,
+    "V-Ups": vUpsImg,
+    "Bicycle Crunches": bicycleCrunchesImg,
+    
+    // Leg exercises
+    "Bodyweight Squats": bodyweightSquatsImg,
+    "Bulgarian Split Squats": bulgarianSplitSquatsImg,
+    "Jump Squats": jumpSquatsImg,
+    "Pistol Squats": pistolSquatsImg,
+    "Step-Ups": stepUpsImg,
+    "Wall Sit": wallSitImg,
+    "Calf Raises": calfRaisesImg
   };
 
   const targetDescriptions = {
@@ -64,10 +149,58 @@ function BodyweightFitness() {
     "Calf Raises": "Targets the gastrocnemius and soleus muscles by rising onto the balls of your feet. This exercise can be performed on flat ground, with toes elevated on a small platform for increased range of motion, or on one leg at a time for increased difficulty. Calf raises build ankle stability and lower leg strength necessary for running, jumping, and overall athletic performance."
   };
 
+  const renderContent = () => {
+    const exercises = BODYWEIGHT_EXERCISES[selectedTarget];
+
+    return (
+      <>
+        <div className="bodyweight-target-header">
+          <h3>{selectedTarget}</h3>
+          <p>{targetDescriptions[selectedTarget]}</p>
+        </div>
+
+        <div className="bodyweight-exercises-container">
+          {exercises.map((exercise) => {
+            // Check if the exercise has an image
+            if (exerciseImages[exercise]) {
+              return (
+                <div key={exercise} className="exercise-row">
+                  {/* Always show text on left, image on right */}
+                  <div className="exercise-text-box">
+                    <h3 className="exercise-name">{exercise}</h3>
+                    <p>{exerciseDescriptions[exercise]}</p>
+                  </div>
+                  <div className="exercise-image-box">
+                    <img 
+                      src={exerciseImages[exercise]} 
+                      alt={exercise} 
+                      className="exercise-image"
+                    />
+                  </div>
+                </div>
+              );
+            } else {
+              // For exercises without images
+              return (
+                <div 
+                  key={exercise} 
+                  className="bodyweight-exercise-card left"
+                >
+                  <h3>{exercise}</h3>
+                  <p>{exerciseDescriptions[exercise] || "Build functional strength and muscle with this effective bodyweight exercise."}</p>
+                </div>
+              );
+            }
+          })}
+        </div>
+      </>
+    );
+  };
+
   return (
     <div className="bodyweight-fitness-page">
       <div className="bodyweight-header">
-        <h2>Bodyweight Fitness</h2>
+        <h1>BODYWEIGHT EXERCISES</h1>
         <p>Effective exercises using only your body weight for resistance</p>
       </div>
 
@@ -86,22 +219,7 @@ function BodyweightFitness() {
       </div>
 
       <div className="bodyweight-content-container">
-        <div className="bodyweight-target-header">
-          <h3>{selectedTarget}</h3>
-          <p>{targetDescriptions[selectedTarget]}</p>
-        </div>
-
-        <div className="bodyweight-exercises-grid">
-          {BODYWEIGHT_EXERCISES[selectedTarget].map((exercise, index) => (
-            <div 
-              key={exercise} 
-              className={`bodyweight-exercise-card ${index % 2 === 0 ? 'left' : 'right'}`}
-            >
-              <h3>{exercise}</h3>
-              <p>{exerciseDescriptions[exercise] || "Build functional strength and muscle with this effective bodyweight exercise."}</p>
-            </div>
-          ))}
-        </div>
+        {renderContent()}
       </div>
     </div>
   );

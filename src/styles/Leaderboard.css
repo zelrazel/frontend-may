@@ -5628,4 +5628,82 @@
     }
 }
 
+.leaderboard-email {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #b3ffd9;
+    font-size: 0.95rem;
+    padding: 0.6rem 1rem;
+    background: linear-gradient(145deg, rgba(20, 55, 40, 0.8), rgba(15, 45, 33, 0.8));
+    border-radius: 8px;
+    width: 100%;
+    max-width: 260px;
+    margin: 0 auto 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-left: 3px solid #00ff84;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+}
+.leaderboard-email .email-icon {
+    font-size: 0.9rem;
+    color: #00ff84;
+    flex-shrink: 0;
+}
+
+/* Remove or override previous .performer .email and .rank-item .rank-email styles to avoid conflicts */
+.performer .email,
+.rank-item .rank-email {
+    all: unset;
+    display: revert;
+}
+
+.rank-item .leaderboard-email {
+    justify-content: flex-start;
+    text-align: left;
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.performer.first .leaderboard-email {
+    border-left: 3px solid #FFD700 !important; /* Gold */
+}
+.performer.second .leaderboard-email {
+    border-left: 3px solid #C0C0C0 !important; /* Silver */
+}
+.performer.third .leaderboard-email {
+    border-left: 3px solid #CD7F32 !important; /* Bronze */
+}
+
+@media screen and (max-width: 768px) {
+  .leaderboard-email {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+  .name, .rank-name {
+    font-size: 1.2rem !important;
+  }
+}
+
+.leaderboard-container .about-me-button {
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
+    height: 22px !important;
+    padding: 1px 4px !important;
+    font-size: 0.7rem !important;
+    margin: 2px auto !important;
+    border-radius: 3px !important;
+}
+
+@media screen and (min-width: 769px) {
+  .rank-item .about-me-button {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    display: block;
+  }
+}
+
 
