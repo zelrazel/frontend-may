@@ -190,7 +190,11 @@ function MachineExercises() {
     <div className="machine-exercises-page">
       <div className="machine-header">
         <h1>MACHINE EXERCISES</h1>
+<<<<<<< HEAD
         <p>A training for targeted muscle development</p>
+=======
+        <p>Guided resistance training for targeted muscle development</p>
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
       </div>
 
       <div className="machine-navigation-container">

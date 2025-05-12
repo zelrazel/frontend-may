@@ -26,7 +26,10 @@ import tricepsExtensionsImg from '../execises/body weight exercises/triceps/Tric
 // Import forearm exercise images
 import deadHangImg from '../execises/body weight exercises/forearms/Dead Hang.png';
 import fingerTipPushUpsImg from '../execises/body weight exercises/forearms/Finger Tip Push-Ups.png';
+<<<<<<< HEAD
 import wristCurlsImg from '../execises/body weight exercises/forearms/Wrist Curls (using a surface).webp';
+=======
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
 
 // Import core exercise images
 import hangingLegRaisesImg from '../execises/body weight exercises/core/Hanging Leg Raises.png';
@@ -77,7 +80,10 @@ function BodyweightFitness() {
     // Forearm exercises
     "Dead Hang": deadHangImg,
     "Finger Tip Push-Ups": fingerTipPushUpsImg,
+<<<<<<< HEAD
     "Wrist Curls (using a surface)": wristCurlsImg,
+=======
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
     
     // Core exercises
     "Hanging Leg Raises": hangingLegRaisesImg,

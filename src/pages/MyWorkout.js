@@ -77,6 +77,7 @@ const MyWorkout = () => {
     const [availableExercises, setAvailableExercises] = useState([]);
     const [toasts, setToasts] = useState([]);
     const [completedWorkouts, setCompletedWorkouts] = useState([]);
+<<<<<<< HEAD
     
     // Tab management states
     const [activeTab, setActiveTab] = useState('all');
@@ -92,6 +93,15 @@ const MyWorkout = () => {
     
     // References for click outside handling
     const timeFilterRef = useRef(null);
+=======
+    const [completionModal, setCompletionModal] = useState({ show: false, workout: null });
+    const [myworkoutsTab, setMyworkoutsTab] = useState('added'); // 'added', 'completed', 'progress'
+    const [progressFilter, setProgressFilter] = useState('all'); // 'all', 'monthly', 'weekly'
+    const [progressMonth, setProgressMonth] = useState(null);
+    const [progressWeek, setProgressWeek] = useState(null);
+    const [progressType, setProgressType] = useState('added'); // 'added' or 'completed'
+    const [showGraph, setShowGraph] = useState(false);
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
 
     // Update fetchWorkouts function
     const fetchWorkouts = async () => {
@@ -1470,6 +1480,267 @@ const MyWorkout = () => {
         );
     };
 
+    // Helper to get months and weeks from workouts
+    const getMonthsAndWeeks = (workouts) => {
+        const months = {};
+        const weeks = {};
+        workouts.forEach(w => {
+            const date = new Date(w.createdAt || w.completedDate || w.updatedAt);
+            // Format month as 'YYYY-MM' for key, and store Date for display
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            if (!months[monthKey]) months[monthKey] = { list: [], date, weeks: new Set() };
+            months[monthKey].list.push(w);
+            
+            // Create week key based on the start of the week (Sunday)
+            const weekStart = new Date(date);
+            weekStart.setDate(date.getDate() - date.getDay());
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            
+            // Format week key to include month for better organization
+            const weekKey = `${weekStart.getFullYear()}-${weekStart.getMonth()}-${weekStart.getDate()}`;
+            
+            // Store the week key with the month data for filtering
+            months[monthKey].weeks.add(weekKey);
+            
+            if (!weeks[weekKey]) {
+                weeks[weekKey] = {
+                    list: [],
+                    startDate: weekStart,
+                    endDate: weekEnd,
+                    monthKey: monthKey
+                };
+            }
+            weeks[weekKey].list.push(w);
+        });
+        return { months, weeks };
+    };
+
+    // Filtering for main tabs
+    const notCompletedWorkouts = workouts.filter(w => !isWorkoutCompleted(w._id) && !w.completed);
+    const onlyCompletedWorkouts = workouts.filter(w => isWorkoutCompleted(w._id) || w.completed);
+
+    // Progress tab filtering
+    let progressSource = progressType === 'added' ? notCompletedWorkouts : onlyCompletedWorkouts;
+    
+    // For Track Progress, we want to show only completed workouts
+    if (myworkoutsTab === 'progress') {
+        // Track Progress now only shows completed workouts
+        progressSource = onlyCompletedWorkouts;
+        // Reset progress type to avoid confusion
+        if (progressType !== 'completed') {
+            setProgressType('completed');
+        }
+    }
+    
+    const { months: progressMonths, weeks: progressWeeks } = getMonthsAndWeeks(progressSource);
+    let filteredProgress = progressSource;
+    
+    // Get all week options or filter by selected month
+    const getWeeksForMonth = (monthKey) => {
+        if (!monthKey) return [];
+        return [...(progressMonths[monthKey]?.weeks || [])];
+    };
+    
+    // Get week data for the selected month
+    const currentMonthWeeks = progressMonth ? getWeeksForMonth(progressMonth) : [];
+    
+    // Format options for month dropdown
+    const progressMonthOptions = Object.keys(progressMonths).sort((a, b) => b.localeCompare(a));
+    
+    // Sort weeks by date (newest first)
+    currentMonthWeeks.sort((a, b) => {
+        const dateA = a.split('-').map(n => parseInt(n, 10));
+        const dateB = b.split('-').map(n => parseInt(n, 10));
+        // Compare year, then month, then day
+        if (dateA[0] !== dateB[0]) return dateB[0] - dateA[0];
+        if (dateA[1] !== dateB[1]) return dateB[1] - dateA[1];
+        return dateB[2] - dateA[2];
+    });
+    
+    // Format month for display
+    const getMonthDisplay = (key) => {
+        const [year, month] = key.split('-');
+        const date = new Date(year, parseInt(month, 10) - 1);
+        return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+    };
+    
+    // Format week for display
+    const getWeekDisplay = (key) => {
+        const weekData = progressWeeks[key];
+        if (!weekData) return key;
+        
+        const { startDate, endDate } = weekData;
+        const startMonth = startDate.toLocaleString('default', { month: 'short' });
+        const endMonth = endDate.toLocaleString('default', { month: 'short' });
+        
+        // If start and end dates are in the same month
+        if (startMonth === endMonth) {
+            return `${startMonth} ${startDate.getDate()}-${endDate.getDate()}, ${startDate.getFullYear()}`;
+        }
+        
+        // If they span different months
+        return `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${startDate.getFullYear()}`;
+    };
+    
+    // Determine what to display based on filter selections
+    let displayWorkouts = [];
+    if (progressFilter === 'all') {
+        // Show all workouts
+        displayWorkouts = filteredProgress;
+    } else if (progressFilter === 'monthly') {
+        if (progressMonth && progressWeek) {
+            // Show workouts for the selected week within the month
+            displayWorkouts = progressWeeks[progressWeek]?.list || [];
+        } else if (progressMonth) {
+            // If month selected but no week, show all workouts for that month
+            displayWorkouts = progressMonths[progressMonth]?.list || [];
+        } else {
+            // Default to all workouts if no month selected
+            displayWorkouts = filteredProgress;
+        }
+    } else if (progressFilter === 'weekly' && progressWeek) {
+        // Weekly view - show workouts for selected week
+        displayWorkouts = progressWeeks[progressWeek]?.list || [];
+    }
+    
+    // Update week filter when month changes
+    useEffect(() => {
+        // Reset week selection when month changes
+        setProgressWeek(null);
+    }, [progressMonth]);
+
+    // Add confirmation state for delete all
+    const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+    
+    // Handle delete all workouts
+    const handleDeleteAllWorkouts = () => {
+        setShowDeleteAllConfirm(true);
+    };
+    
+    // Confirm delete all workouts
+    const confirmDeleteAllWorkouts = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showToast('Authentication required', 'error');
+                return;
+            }
+            
+            // Only delete workouts shown in the current filter
+            const workoutIds = displayWorkouts.map(workout => workout._id);
+            if (workoutIds.length === 0) {
+                showToast('No workouts to delete', 'info');
+                setShowDeleteAllConfirm(false);
+                return;
+            }
+            
+            // Make API calls to delete each workout
+            const deletePromises = workoutIds.map(id => 
+                axios.delete(`${API_URL}api/workouts/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            );
+            
+            await Promise.all(deletePromises);
+            
+            showToast(`Deleted ${workoutIds.length} workouts`, 'success');
+            await fetchWorkouts();
+            setShowDeleteAllConfirm(false);
+        } catch (error) {
+            console.error('Delete all error:', error);
+            showToast(
+                error.response?.data?.error || 'Error deleting workouts', 
+                'error'
+            );
+            setShowDeleteAllConfirm(false);
+        }
+    };
+    
+    // Function to render workout card differently based on context
+    const renderWorkoutCardForTrackProgress = (workout) => {
+        const completed = isWorkoutCompleted(workout._id) || workout.completed === true;
+        
+        return (
+            <div className={`workout-card ${completed ? 'completed' : ''}`} key={workout._id}>
+                {completed && (
+                    <div className="completed-badge">
+                        <span className="complete-icon">✓</span>
+                        COMPLETED
+                    </div>
+                )}
+                
+                <div className={`workout-content ${completed ? 'completed-text' : ''}`}>
+                    <h3 className="workout-title">{workout.category}</h3>
+                    <div className="card-category">{workout.exerciseName}</div>
+                    <div className="workout-details">
+                        <div className="detail-box"><span>TARGET :</span> {workout.target}</div>
+                        <div className="detail-box"><span>REPS :</span> {workout.reps}</div>
+                    </div>
+                    <div className="workout-details">
+                        <div className="detail-box"><span>SET :</span> {workout.sets}</div>
+                        <div className="detail-box"><span>WEIGHT :</span> {workout.weight} lbs</div>
+                    </div>
+                    {workout.description && ( 
+                        <div className="description-box">
+                            <span>DESCRIPTION :</span> 
+                            {workout.description}
+                        </div>
+                    )}
+                    
+                    {/* Only DELETE button for Track Progress */}
+                    <div className="workout-actions track-progress-actions">
+                        <button 
+                            className="button-delete"
+                            onClick={() => handleDeleteWorkout(workout._id)}
+                        >
+                            DELETE
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Function to extract graph data from completed workouts
+    const getWorkoutStats = () => {
+        // Skip if no workouts or not in progress tab
+        if (!displayWorkouts || displayWorkouts.length === 0 || myworkoutsTab !== 'progress') {
+            return {
+                categories: {},
+                targets: {},
+                maxCategory: 0,
+                maxTarget: 0
+            };
+        }
+        
+        // Count workouts by category and target
+        const categories = {};
+        const targets = {};
+        
+        displayWorkouts.forEach(workout => {
+            // Count by category
+            categories[workout.category] = (categories[workout.category] || 0) + 1;
+            
+            // Count by target muscle
+            targets[workout.target] = (targets[workout.target] || 0) + 1;
+        });
+        
+        // Find max values for scaling
+        const maxCategory = Math.max(...Object.values(categories));
+        const maxTarget = Math.max(...Object.values(targets));
+        
+        return {
+            categories,
+            targets,
+            maxCategory,
+            maxTarget
+        };
+    };
+    
+    // Get the workout statistics
+    const { categories: graphCategories, targets: graphTargets, maxCategory: graphMaxCategory, maxTarget: graphMaxTarget } = getWorkoutStats();
+
     return (
         <div className="page-container">
             <div className="page-content">
@@ -1496,6 +1767,7 @@ const MyWorkout = () => {
                     </button>
                 </div>
 
+<<<<<<< HEAD
                 {/* Workout tabs */}
                 <div className="profile-style-tabs">
                     <button 
@@ -1647,11 +1919,51 @@ const MyWorkout = () => {
                             <button 
                                 className={`progress-style-tab ${trackingView === 'graph' ? 'active' : ''}`}
                                 onClick={() => setTrackingView('graph')}
+=======
+                <div className="myworkouts-tabs-bar">
+                    <button
+                        className={`myworkouts-tab${myworkoutsTab === 'added' ? ' myworkouts-tab-active' : ''}`}
+                        onClick={() => setMyworkoutsTab('added')}
+                    >Added Workouts</button>
+                    <button
+                        className={`myworkouts-tab${myworkoutsTab === 'completed' ? ' myworkouts-tab-active' : ''}`}
+                        onClick={() => setMyworkoutsTab('completed')}
+                    >Completed Workouts</button>
+                    <button
+                        className={`myworkouts-tab${myworkoutsTab === 'progress' ? ' myworkouts-tab-active' : ''}`}
+                        onClick={() => setMyworkoutsTab('progress')}
+                    >Track Progress</button>
+                </div>
+
+                {myworkoutsTab === 'added' && (
+                    <div className="myworkouts-added-list">
+                        {notCompletedWorkouts.length === 0 ? <div>No added workouts.</div> : notCompletedWorkouts.map(renderWorkoutCard)}
+                    </div>
+                )}
+                {myworkoutsTab === 'completed' && (
+                    <div className="myworkouts-completed-list">
+                        {onlyCompletedWorkouts.length === 0 ? <div>No completed workouts.</div> : onlyCompletedWorkouts.map(renderWorkoutCard)}
+                    </div>
+                )}
+                {myworkoutsTab === 'progress' && (
+                    <div className="myworkouts-progress-section">
+                        <div className="myworkouts-progress-view-toggle">
+                            <button
+                                className={`myworkouts-view-toggle-btn${!showGraph ? ' active' : ''}`}
+                                onClick={() => setShowGraph(false)}
+                            >
+                                List View
+                            </button>
+                            <button
+                                className={`myworkouts-view-toggle-btn${showGraph ? ' active' : ''}`}
+                                onClick={() => setShowGraph(true)}
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                             >
                                 Graph View
                             </button>
                         </div>
                         
+<<<<<<< HEAD
                         {/* Time filter for Progress tab */}
                         <div className="time-filter-container" ref={timeFilterRef}>
                             <div 
@@ -1743,6 +2055,169 @@ const MyWorkout = () => {
                                 ) : (
                                     <div className="no-workouts-message">
                                         <p>No workout data available. Complete workouts to see your progress!</p>
+=======
+                        <div className="myworkouts-progress-dropdown-bar">
+                            <select
+                                className="myworkouts-progress-dropdown"
+                                value={progressFilter}
+                                onChange={e => {
+                                    setProgressFilter(e.target.value);
+                                    setProgressMonth(null);
+                                    setProgressWeek(null);
+                                }}
+                            >
+                                <option value="all">All Time</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="weekly">Weekly</option>
+                            </select>
+                            {progressFilter === 'monthly' && (
+                                <>
+                                    <select
+                                        className="myworkouts-progress-month-dropdown"
+                                        value={progressMonth || ''}
+                                        onChange={e => setProgressMonth(e.target.value)}
+                                    >
+                                        <option value="">Select Month</option>
+                                        {progressMonthOptions.map(m => <option key={m} value={m}>{getMonthDisplay(m)}</option>)}
+                                    </select>
+                                    
+                                    {progressMonth && currentMonthWeeks.length > 0 && (
+                                        <select
+                                            className="myworkouts-progress-week-dropdown"
+                                            value={progressWeek || ''}
+                                            onChange={e => setProgressWeek(e.target.value)}
+                                        >
+                                            <option value="">All Weeks</option>
+                                            {currentMonthWeeks.map(w => 
+                                                <option key={w} value={w}>{getWeekDisplay(w)}</option>
+                                            )}
+                                        </select>
+                                    )}
+                                </>
+                            )}
+                            {progressFilter === 'weekly' && (
+                                <select
+                                    className="myworkouts-progress-week-dropdown"
+                                    value={progressWeek || ''}
+                                    onChange={e => setProgressWeek(e.target.value)}
+                                >
+                                    <option value="">Select Week</option>
+                                    {Object.keys(progressWeeks).sort((a, b) => b.localeCompare(a))
+                                        .map(w => <option key={w} value={w}>{getWeekDisplay(w)}</option>)
+                                    }
+                                </select>
+                            )}
+                        </div>
+                        
+                        {/* List View */}
+                        {!showGraph && (
+                            <div className="myworkouts-progress-lists">
+                                <div>
+                                    <h3>Completed Workouts</h3>
+                                    
+                                    {/* Delete All button */}
+                                    {displayWorkouts.length > 0 && (
+                                        <div className="delete-all-container">
+                                            <button 
+                                                className="button-delete-all"
+                                                onClick={handleDeleteAllWorkouts}
+                                            >
+                                                Delete All Shown Workouts
+                                            </button>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Display title based on selection */}
+                                    {progressFilter === 'monthly' && progressMonth && (
+                                        <h4 className="month-title">
+                                            {getMonthDisplay(progressMonth)}
+                                            {progressWeek && ` - ${getWeekDisplay(progressWeek)}`}
+                                        </h4>
+                                    )}
+                                    
+                                    {progressFilter === 'weekly' && progressWeek && (
+                                        <h4 className="week-title">{getWeekDisplay(progressWeek)}</h4>
+                                    )}
+                                    
+                                    {/* Display workouts */}
+                                    {displayWorkouts.length === 0 ? (
+                                        <div className="no-workouts-message">
+                                            No workouts found for the selected time period.
+                                        </div>
+                                    ) : (
+                                        displayWorkouts.map(renderWorkoutCardForTrackProgress)
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Simple Graph View using CSS */}
+                        {showGraph && (
+                            <div className="workouts-graph-container">
+                                <h3>Workout Completion Analytics</h3>
+                                
+                                {/* Display title based on selection */}
+                                {progressFilter === 'monthly' && progressMonth && (
+                                    <h4 className="month-title">
+                                        {getMonthDisplay(progressMonth)}
+                                        {progressWeek && ` - ${getWeekDisplay(progressWeek)}`}
+                                    </h4>
+                                )}
+                                
+                                {progressFilter === 'weekly' && progressWeek && (
+                                    <h4 className="week-title">{getWeekDisplay(progressWeek)}</h4>
+                                )}
+                                
+                                {displayWorkouts.length === 0 ? (
+                                    <div className="no-workouts-message">
+                                        No workout data available for the selected time period.
+                                    </div>
+                                ) : (
+                                    <div className="basic-stats-container">
+                                        <div className="stats-section">
+                                            <h5 className="graph-title">Workouts by Equipment Type</h5>
+                                            <div className="scrollable-chart">
+                                                <div className="stats-bars">
+                                                    {Object.entries(graphCategories).map(([category, count]) => (
+                                                        <div className="stats-bar-group" key={`cat-${category}`}>
+                                                            <div 
+                                                                className="stats-bar" 
+                                                                style={{ 
+                                                                    height: `${(count / graphMaxCategory) * 180}px`,
+                                                                    backgroundColor: category === 'Barbell' ? '#4cc9f0' :
+                                                                                      category === 'Dumbbell' ? '#8338ec' :
+                                                                                      category === 'Machine' ? '#fb5607' : '#00A951'
+                                                                }}
+                                                            ></div>
+                                                            <div className="stats-label">{category}</div>
+                                                            <div className="stats-value">{count}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="stats-section">
+                                            <h5 className="graph-title">Workouts by Muscle Group</h5>
+                                            <div className="scrollable-chart">
+                                                <div className="stats-bars">
+                                                    {Object.entries(graphTargets).map(([target, count]) => (
+                                                        <div className="stats-bar-group" key={`target-${target}`}>
+                                                            <div 
+                                                                className="stats-bar" 
+                                                                style={{ 
+                                                                    height: `${(count / graphMaxTarget) * 180}px`,
+                                                                    backgroundColor: 'rgba(0, 169, 81, 0.8)'
+                                                                }}
+                                                            ></div>
+                                                            <div className="stats-label">{target}</div>
+                                                            <div className="stats-value">{count}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                                     </div>
                                 )}
                             </div>
@@ -1896,6 +2371,36 @@ const MyWorkout = () => {
                     />
                 ))}
             </div>
+<<<<<<< HEAD
+=======
+            {showConfirmModal.show && (
+                <ConfirmationModal
+                    message={showConfirmModal.message}
+                    onConfirm={() => confirmDelete(showConfirmModal.workoutId)}
+                    onCancel={() => setShowConfirmModal({ show: false, workoutId: null, message: "" })}
+                />
+            )}
+            {completionModal.show && (
+                <CompletionModal
+                    workout={completionModal.workout}
+                    onConfirm={() => confirmCompletion(completionModal.workout)}
+                    onCancel={() => setCompletionModal({ show: false, workout: null })}
+                />
+            )}
+            {/* Delete All Confirmation Modal */}
+            {showDeleteAllConfirm && (
+                <div className="modal-overlay" onClick={() => setShowDeleteAllConfirm(false)}>
+                    <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+                        <p>Are you sure you want to delete all {displayWorkouts.length} workouts currently shown?</p>
+                        <p className="warning-text">This action cannot be undone!</p>
+                        <div className="confirm-actions">
+                            <button className="button-cancel" onClick={() => setShowDeleteAllConfirm(false)}>Cancel</button>
+                            <button className="button-delete confirm" onClick={confirmDeleteAllWorkouts}>Delete All</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
         </div>
     );
 };

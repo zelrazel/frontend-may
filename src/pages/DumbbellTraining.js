@@ -37,7 +37,10 @@ import kickbacksImg from '../execises/dumbbell exercises/tricep/Dumbbell Kickbac
 import skullCrushersImg from '../execises/dumbbell exercises/tricep/Dumbbell Skull Crushers.jpg';
 import closeGripPressImg from '../execises/dumbbell exercises/tricep/Close-Grip Dumbbell Press.png';
 import singleArmExtensionImg from '../execises/dumbbell exercises/tricep/Dumbbell Triceps Extensions (Single-Arm).png';
+<<<<<<< HEAD
 import tricepsDipsImg from '../execises/dumbbell exercises/tricep/Dumbbell Triceps Dips.png';
+=======
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
 
 // Import forearm exercise images
 import wristCurlsImg from '../execises/dumbbell exercises/forearms/Dumbbell Wrist Curls.png';
@@ -45,8 +48,11 @@ import reverseWristCurlsImg from '../execises/dumbbell exercises/forearms/Revers
 import dumbbellReverseCurlImg from '../execises/dumbbell exercises/forearms/Dumbbell Reverse Curl.png';
 import wristRotationsImg from '../execises/dumbbell exercises/forearms/Wrist Rotations.png';
 import fingerCurlsImg from '../execises/dumbbell exercises/forearms/Dumbbell Finger Curls.png';
+<<<<<<< HEAD
 import pinchHoldImg from '../execises/dumbbell exercises/forearms/Dumbbell Pinch Hold.png';
 import deadHangImg from '../execises/dumbbell exercises/forearms/Dead Hang with Dumbbells.png';
+=======
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
 
 // Import core exercise images
 import russianTwistsImg from '../execises/dumbbell exercises/core/Dumbbell Russian Twists.png';
@@ -103,7 +109,10 @@ const exerciseImages = {
   "Dumbbell Skull Crushers": skullCrushersImg,
   "Close-Grip Dumbbell Press": closeGripPressImg,
   "Dumbbell Triceps Extensions (Single-Arm)": singleArmExtensionImg,
+<<<<<<< HEAD
   "Dumbbell Triceps Dips": tricepsDipsImg,
+=======
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
   
   // Forearm exercises
   "Dumbbell Wrist Curls": wristCurlsImg,
@@ -111,8 +120,11 @@ const exerciseImages = {
   "Dumbbell Reverse Curl": dumbbellReverseCurlImg,
   "Wrist Rotations": wristRotationsImg,
   "Dumbbell Finger Curls": fingerCurlsImg,
+<<<<<<< HEAD
   "Dumbbell Pinch Hold": pinchHoldImg,
   "Dead Hang with Dumbbells": deadHangImg,
+=======
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
   
   // Core exercises
   "Dumbbell Russian Twists": russianTwistsImg,

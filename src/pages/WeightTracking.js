@@ -628,6 +628,7 @@ const WeightTracking = () => {
         }
     }, [weightHistory, selectedMonth]);
     
+<<<<<<< HEAD
     // Generate weeks for a specific month - completely rewritten to fix duplicates
     const generateWeeksForMonth = (monthData) => {
         console.log("Generating weeks for month:", monthData.name);
@@ -656,10 +657,29 @@ const WeightTracking = () => {
             const date = new Date(year, month, day);
             
             // Find the start of week (Sunday)
+=======
+    // Fix the generateWeeksForMonth function to prevent duplicates
+    const generateWeeksForMonth = (monthData) => {
+        // Get entries for this month and sort by date
+        const entries = monthData.entries.sort((a, b) => 
+            new Date(a.date) - new Date(b.date)
+        );
+        
+        if (!entries.length) return;
+        
+        // Group by week
+        const weekMap = new Map();
+        
+        entries.forEach(entry => {
+            const date = new Date(entry.date);
+            
+            // Find the start of the week (Sunday)
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
             const startOfWeek = new Date(date);
             const dayOfWeek = startOfWeek.getDay();
             startOfWeek.setDate(date.getDate() - dayOfWeek); // Go back to Sunday
             
+<<<<<<< HEAD
             // End of week is Saturday
             const endOfWeek = new Date(startOfWeek);
             endOfWeek.setDate(startOfWeek.getDate() + 6);
@@ -711,6 +731,32 @@ const WeightTracking = () => {
         
         console.log(`Generated ${weeksArray.length} unique weeks with entries for ${monthData.name}`);
         setAvailableWeeks(weeksArray);
+=======
+            // Format the week key to ensure uniqueness
+            const weekKey = startOfWeek.toISOString().split('T')[0];
+            
+            if (!weekMap.has(weekKey)) {
+                // End of week is Saturday
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                
+                weekMap.set(weekKey, {
+                    startDate: new Date(startOfWeek),
+                    endDate: new Date(endOfWeek),
+                    entries: [],
+                    name: `${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                });
+            }
+            
+            weekMap.get(weekKey).entries.push(entry);
+        });
+        
+        // Convert to array and sort chronologically
+        const weeksArr = Array.from(weekMap.values());
+        weeksArr.sort((a, b) => b.startDate - a.startDate); // Most recent first
+        
+        setAvailableWeeks(weeksArr);
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
     };
     
     // Function to filter data by selected time period
@@ -726,6 +772,7 @@ const WeightTracking = () => {
         let timeRangeLabel = 'All Time';
         
         if (chartTimePeriod === 'weekly' && selectedWeek) {
+<<<<<<< HEAD
             console.log("Filtering for week:", selectedWeek.name);
             // Filter for selected week using the date range
             filteredData = sortedHistory.filter(entry => {
@@ -746,11 +793,21 @@ const WeightTracking = () => {
             timeRangeLabel = selectedWeek.name;
         } else if (chartTimePeriod === 'monthly' && selectedMonth) {
             console.log("Filtering for month:", selectedMonth.name);
+=======
+            // Filter for selected week using the date range
+            filteredData = sortedHistory.filter(entry => {
+                const entryDate = new Date(entry.date);
+                return entryDate >= selectedWeek.startDate && entryDate <= selectedWeek.endDate;
+            });
+            timeRangeLabel = `Week of ${selectedWeek.name}`;
+        } else if (chartTimePeriod === 'monthly' && selectedMonth) {
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
             // Filter for selected month using stored month data
             const monthIndex = selectedMonth.month;
             const yearValue = selectedMonth.year;
             
             filteredData = sortedHistory.filter(entry => {
+<<<<<<< HEAD
                 try {
                     const entryDate = new Date(entry.date);
                     return entryDate.getMonth() === monthIndex && entryDate.getFullYear() === yearValue;
@@ -760,6 +817,11 @@ const WeightTracking = () => {
                 }
             });
             console.log(`Found ${filteredData.length} entries for month: ${selectedMonth.name}`);
+=======
+                const entryDate = new Date(entry.date);
+                return entryDate.getMonth() === monthIndex && entryDate.getFullYear() === yearValue;
+            });
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
             timeRangeLabel = selectedMonth.name;
         }
         
@@ -829,6 +891,7 @@ const WeightTracking = () => {
     
     // Handle week selection
     const handleWeekSelect = (week) => {
+<<<<<<< HEAD
         console.log("Selected week:", week.name, "with key:", week.key || "no key");
         // Make sure week has a key property for consistent comparison
         const weekWithKey = week.key ? week : {
@@ -838,6 +901,10 @@ const WeightTracking = () => {
         setSelectedWeek(weekWithKey);
         setChartTimePeriod('weekly');
         // Always close the dropdown after selecting a week
+=======
+        setSelectedWeek(week);
+        setChartTimePeriod('weekly');
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
         setShowTimeFilter(false);
     };
     
@@ -902,25 +969,42 @@ const WeightTracking = () => {
                     <div className="weight-value">{currentWeight} kg</div>
                 </div>
 
+<<<<<<< HEAD
                 {/* Add tab navigation */}
                 <div className="weight-tracking-tabs">
+=======
+                {/* Add weight section tabs here */}
+                <div className="weight-tabs">
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                     <button 
                         className={`weight-tab ${activeTab === 'update' ? 'active' : ''}`}
                         onClick={() => setActiveTab('update')}
                     >
+<<<<<<< HEAD
                         Update Weight
+=======
+                        UPDATE WEIGHT
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                     </button>
                     <button 
                         className={`weight-tab ${activeTab === 'progress' ? 'active' : ''}`}
                         onClick={() => setActiveTab('progress')}
                     >
+<<<<<<< HEAD
                         Weight Progress
+=======
+                        WEIGHT PROGRESS
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                     </button>
                     <button 
                         className={`weight-tab ${activeTab === 'history' ? 'active' : ''}`}
                         onClick={() => setActiveTab('history')}
                     >
+<<<<<<< HEAD
                         History
+=======
+                        HISTORY
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                     </button>
                 </div>
 
@@ -984,8 +1068,13 @@ const WeightTracking = () => {
 
                         <div className="weight-limits-info">
                             <p>• You can log only one weight change per day</p>
+<<<<<<< HEAD
                             <p>• Weight loss: Up to 2 kg per entry</p>
                             <p>• Weight gain: Up to 1 kg per entry</p>
+=======
+                            <p>• Weight loss: Must be between 1-2 kg per entry</p>
+                            <p>• Weight gain: Fixed at exactly 1 kg per entry</p>
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                             <p>• Weight must be between 40 kg and 500 kg</p>
                         </div>
                     </div>
@@ -993,8 +1082,12 @@ const WeightTracking = () => {
 
                 {/* Weight Progress Tab Content */}
                 {activeTab === 'progress' && (
+<<<<<<< HEAD
                     <div id="progress-tab-content">
                         {/* Move dropdown outside the chart-container */}
+=======
+                    <div className="chart-container">
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                         <div className="weight-time-filter" ref={timeFilterRef}>
                             <div 
                                 className="weight-time-filter-selector" 
@@ -1003,6 +1096,10 @@ const WeightTracking = () => {
                                 <span>{getTimeFilterLabel()}</span>
                                 <FaChevronDown className="dropdown-icon" />
                             </div>
+<<<<<<< HEAD
+=======
+                            
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                             {showTimeFilter && (
                                 <div className="weight-time-dropdown">
                                     <div 
@@ -1011,12 +1108,21 @@ const WeightTracking = () => {
                                     >
                                         All Time
                                     </div>
+<<<<<<< HEAD
+=======
+                                    
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                                     <div 
                                         className={`time-option ${chartTimePeriod === 'monthly' && !selectedMonth ? 'active' : ''}`}
                                         onClick={() => handleTimePeriodChange('monthly')}
                                     >
                                         Monthly
                                     </div>
+<<<<<<< HEAD
+=======
+                                    
+                                    {/* Show all available months */}
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                                     {availableMonths.map((month, idx) => (
                                         <div 
                                             key={idx}
@@ -1026,17 +1132,31 @@ const WeightTracking = () => {
                                             {month.name}
                                         </div>
                                     ))}
+<<<<<<< HEAD
+=======
+                                    
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                                     <div 
                                         className={`time-option ${chartTimePeriod === 'weekly' ? 'active' : ''}`}
                                         onClick={() => handleTimePeriodChange('weekly')}
                                     >
                                         Weekly
                                     </div>
+<<<<<<< HEAD
                                     {selectedMonth && availableWeeks.length > 0 && (
                                         availableWeeks.map((week) => (
                                             <div 
                                                 key={`week-${week.key || week.startDate.toISOString()}`}
                                                 className={`time-option indent ${selectedWeek && (selectedWeek.key === week.key || (selectedWeek.startDate.getTime() === week.startDate.getTime() && selectedWeek.endDate.getTime() === week.endDate.getTime())) ? 'active' : ''}`}
+=======
+                                    
+                                    {/* Show weeks for the selected month or when in weekly view */}
+                                    {selectedMonth && availableWeeks.length > 0 && (
+                                        availableWeeks.map((week, index) => (
+                                            <div 
+                                                key={`week-${index}-${week.startDate.toISOString()}`}
+                                                className={`time-option indent ${selectedWeek === week ? 'active' : ''}`}
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                                                 onClick={() => handleWeekSelect(week)}
                                             >
                                                 {week.name}
@@ -1046,6 +1166,7 @@ const WeightTracking = () => {
                                 </div>
                             )}
                         </div>
+<<<<<<< HEAD
                         <div className="chart-container">
                             {weightHistory.length > 0 ? (
                                 <Line data={chartData} options={chartOptions} />
@@ -1053,13 +1174,25 @@ const WeightTracking = () => {
                                 <div className="no-data-message">No weight data available. Start tracking to see your progress!</div>
                             )}
                         </div>
+=======
+                        
+                        {weightHistory.length > 0 ? (
+                            <Line data={chartData} options={chartOptions} />
+                        ) : (
+                            <div className="no-data-message">No weight data available. Start tracking to see your progress!</div>
+                        )}
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                     </div>
                 )}
 
                 {/* History Tab Content */}
                 {activeTab === 'history' && (
                     <div className="weight-history">
+<<<<<<< HEAD
                         <h2>Weight History</h2>
+=======
+                        <h2>History</h2>
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                         <div className="history-list">
                             {weightHistory.map((entry) => (
                                 <div key={entry._id} className="history-item">
@@ -1073,6 +1206,10 @@ const WeightTracking = () => {
                                                 {entry.changeType === 'loss' ? 'Lost' : 'Gained'} {entry.changeAmount.toFixed(1)} kg
                                             </span>
                                         )}
+<<<<<<< HEAD
+=======
+                                        <span className="email">{entry.userEmail}</span>
+>>>>>>> 50ae52134876bce37ea33bb7cf4df6f6c925f436
                                     </div>
                                     <button 
                                         className="delete-button"
